@@ -1,0 +1,6 @@
+{
+  "name": "CricLive",
+  "description": "Live cricket scores, ball-by-ball commentary, and PiP multitasking on homescreen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
