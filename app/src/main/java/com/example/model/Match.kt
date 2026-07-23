@@ -9,9 +9,15 @@ data class Match(
     val overs1: String,
     val overs2: String,
     val status: String,
+    val seriesName: String = "",
+    val matchTiming: String = "",
     val currentBatter: String = "",
     val currentBowler: String = "",
-    val liveCommentary: List<Commentary> = emptyList()
+    val squad1: List<String> = emptyList(),
+    val squad2: List<String> = emptyList(),
+    val notablePerformances: String = "",
+    val liveCommentary: List<Commentary> = emptyList(),
+    val matchUrl: String = ""
 )
 
 data class Commentary(

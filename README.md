@@ -1,21 +1,57 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# CricLive 🏏
 
-# Run and deploy your AI Studio app
+![CricLive Banner](assets/feature_graphic.png)
 
-This contains everything you need to run your app locally.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/criclive/android.yml?branch=main)](https://github.com/your-username/criclive/actions)
+[![F-Droid](https://img.shields.io/badge/F--Droid-Coming%20Soon-blue?logo=f-droid)](https://f-droid.org/)
 
-View your app in AI Studio: https://ai.studio/apps/14dd33a2-1b30-4e90-aad7-1234022544df
+CricLive is an open-source, lightning-fast cricket live score app built specifically for Indian cricket fans and students. It tracks live matches, recent results, and upcoming series using modern Android architecture. 
 
-## Run Locally
+Whether you just want the scores in a clean UI or want to completely customize the app for your favorite player, CricLive has you covered.
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+## Features ✨
 
+* **Standard Mode:** A clean, minimal dashboard focusing entirely on live scores, match timings, and upcoming schedules. No bloat, no heavy ads.
+* **Fan Zone (Fan Mode):** Personalize the app with your idol's name and wallpaper. Get a premium, custom-tailored dark theme glowing with your favorite player's aura.
+* **Picture-in-Picture (PiP):** Keep an eye on the score while browsing other apps.
+* **Offline-First Resilience:** Built with Room Database to cache recent scores if your network drops on the commute.
+* **Light/Dark Themes:** Adapts to your system preferences naturally.
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+## Screenshots 📸
+
+| Standard Mode | Fan Zone | Dark Mode |
+|:---:|:---:|:---:|
+| <img src="assets/screenshot_standard.png" width="250"> | <img src="assets/screenshot_fanmode.png" width="250"> | <img src="assets/screenshot_dark.png" width="250"> |
+
+## For Students & Developers 👨‍💻
+
+CricLive is designed to be a learning resource for modern Android development. 
+* **UI:** Jetpack Compose (Material Design 3)
+* **Architecture:** MVVM + Clean Architecture principles
+* **Local Storage:** Room Database
+* **Networking:** Retrofit + XML Pull Parsing for RSS
+
+### Build Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/criclive.git
+   ```
+2. **Open in Android Studio:**
+   Open the cloned directory in Android Studio (Jellyfish or newer recommended).
+3. **Build & Run:**
+   Sync the Gradle project, select your emulator or physical device, and hit **Run** (`Shift + F10`).
+
+## Roadmap 🚀
+
+- [x] Live Scores & RSS Integration
+- [x] Fan Mode Personalization
+- [x] Picture-in-Picture (PiP)
+- [ ] F-Droid Submission
+- [ ] Multi-language support (Hindi, Tamil, Telugu, etc.)
+- [ ] Google Play Store Release
+
+## License 📜
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

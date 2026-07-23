@@ -1,0 +1,1299 @@
+package com.example.ui
+import com.example.R
+import androidx.compose.ui.res.painterResource
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.text.BasicTextField
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.shape.*
+import androidx.compose.material.icons.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.*
+import androidx.compose.ui.text.font.*
+import androidx.compose.ui.text.style.*
+import androidx.compose.ui.unit.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.*
+import androidx.navigation.compose.*
+import com.example.model.Match
+import com.example.viewmodel.*
+import kotlinx.coroutines.delay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@Composable
+fun CricketApp(
+    viewModel: CricketViewModel,
+    isPipMode: Boolean,
+    pipHintShown: Boolean,
+    isFirstLaunch: Boolean,
+    onOnboardingComplete: () -> Unit,
+    onEnterPip: () -> Unit,
+    initialMatchId: String? = null
+) {
+    val navController = rememberNavController()
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle(initialValue = 1)
+
+    val startDest = if (isFirstLaunch) "onboarding" else "match_list"
+
+    LaunchedEffect(initialMatchId) {
+        if (initialMatchId != null && !isFirstLaunch) {
+            viewModel.selectMatch(initialMatchId)
+            navController.navigate("match_detail")
+        }
+    }
+
+    NavHost(navController = navController, startDestination = startDest) {
+        composable("onboarding") {
+            val suggestedPlayers by viewModel.suggestedPlayers.collectAsState()
+            OnboardingScreen(
+                suggestedPlayers = suggestedPlayers,
+                onFetchPlayers = { viewModel.fetchSuggestedPlayers(it) },
+                onComplete = { teams, players ->
+                    onOnboardingComplete()
+                    viewModel.completeOnboarding(teams, players)
+                    navController.navigate("match_list") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("match_list") {
+            when (val state = uiState) {
+                is com.example.viewmodel.CricketUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is com.example.viewmodel.CricketUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = { viewModel.refresh() }) { Text("Retry") }
+                        }
+                    }
+                }
+                is com.example.viewmodel.CricketUiState.Success -> {
+                    MatchListScreen(
+                        matches = state.matches,
+                        searchQuery = state.searchQuery,
+                        isOffline = state.isOffline,
+                        lastUpdated = state.lastUpdated,
+                        themeMode = themeMode,
+                        preferredTeams = state.preferredTeams,
+                        preferredPlayers = state.preferredPlayers,
+                        appMode = state.appMode,
+                        userName = state.userName,
+                        idolName = state.idolName,
+                        wallpaperUri = state.wallpaperUri,
+                        onRefresh = { viewModel.refresh() },
+                        onSearchQueryChange = viewModel::updateSearchQuery,
+                        onMatchSelect = {
+                            viewModel.selectMatch(it.id)
+                            navController.navigate("match_detail")
+                        },
+                        onThemeModeChange = { viewModel.setThemeMode(it) },
+                        onPreferredTeamsChange = { viewModel.completeOnboarding(it, state.preferredPlayers) },
+                        onPreferredPlayersChange = { viewModel.updatePreferredPlayers(it) },
+                        onAppModeChange = { viewModel.updateAppMode(it) },
+                        onUserNameChange = { viewModel.updateUserName(it) },
+                        onIdolNameChange = { viewModel.updateIdolName(it) },
+                        onWallpaperChange = { viewModel.updateWallpaperUri(it) }
+                    )
+                }
+            }
+        }
+        composable("match_detail") {
+            val successState = uiState as? com.example.viewmodel.CricketUiState.Success
+            val match = successState?.matches?.find { it.id == successState.selectedMatchId }
+            if (match != null) {
+                if (isPipMode) {
+                    PipScoreCard(match = match)
+                } else {
+                    MatchDetailScreen(
+                        match = match,
+                        pipHintShown = pipHintShown,
+                        onDismissPipHint = { viewModel.setPipHintShown(true) },
+                        onBack = {
+                            viewModel.selectMatch(null)
+                            navController.popBackStack()
+                        },
+                        onEnterPip = onEnterPip
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MatchListScreen(
+    matches: List<Match>,
+    searchQuery: String,
+    isOffline: Boolean,
+    lastUpdated: String,
+    themeMode: Int,
+    preferredTeams: Set<String>,
+    preferredPlayers: Set<String>,
+    appMode: String,
+    userName: String,
+    idolName: String,
+    wallpaperUri: String,
+    onRefresh: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onMatchSelect: (Match) -> Unit,
+    onThemeModeChange: (Int) -> Unit,
+    onPreferredTeamsChange: (Set<String>) -> Unit,
+    onPreferredPlayersChange: (Set<String>) -> Unit,
+    onAppModeChange: (String) -> Unit,
+    onUserNameChange: (String) -> Unit,
+    onIdolNameChange: (String) -> Unit,
+    onWallpaperChange: (String) -> Unit
+) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("CricLive", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = if (themeMode == 2 || (themeMode == 0 && androidx.compose.foundation.isSystemInDarkTheme())) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary,
+                    titleContentColor = if (themeMode == 2 || (themeMode == 0 && androidx.compose.foundation.isSystemInDarkTheme())) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = if (themeMode == 2 || (themeMode == 0 && androidx.compose.foundation.isSystemInDarkTheme())) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    TextButton(
+                        onClick = { onAppModeChange(if (appMode == "fan") "standard" else "fan") },
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimary)
+                    ) {
+                        Icon(if (appMode == "fan") Icons.Default.Star else Icons.Default.StarBorder, contentDescription = "Fan Mode", modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(if (appMode == "fan") "Fan Mode" else "Standard", fontWeight = FontWeight.Bold)
+                    }
+                    IconButton(onClick = { showBottomSheet = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            // Fan Mode Background
+            if (appMode == "fan") {
+                if (wallpaperUri.isNotBlank()) {
+                    AsyncImage(
+                        model = wallpaperUri,
+                        contentDescription = "Fan Wallpaper",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.img_fan_wallpaper),
+                        contentDescription = "Fan Wallpaper Default",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                // Gradient overlay for readability without aggressive dimming
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                            )
+                        )
+                )
+                
+                // Cinematic Typography for Fan
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 100.dp, start = 16.dp, end = 16.dp)
+                ) {
+                    if (idolName.isNotBlank() || userName.isNotBlank()) {
+                        Text(
+                            text = (if (userName.isNotBlank()) "$userName's " else "") + "Fan Zone",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Yellow,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        if (idolName.isNotBlank()) {
+                            Text(
+                                text = idolName.uppercase(),
+                                style = MaterialTheme.typography.displayMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Black,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            val lastName = idolName.split(" ").last()
+                            val idolMatch = matches.find { it.notablePerformances?.contains(lastName, ignoreCase = true) == true }
+                            if (idolMatch != null && !idolMatch.notablePerformances.isNullOrEmpty()) {
+                                Text(
+                                    text = idolMatch.notablePerformances ?: "",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color.Green,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
+            ) {
+            androidx.compose.material3.OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                placeholder = { Text("Search matches, teams...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                singleLine = true,
+                shape = RoundedCornerShape(32.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Last updated: $lastUpdated", 
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            if (isOffline) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Offline - Showing last known scores.", color = MaterialTheme.colorScheme.onErrorContainer)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = onRefresh) {
+                            Text("Retry")
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            
+            val favPlayerMatches = matches.filter { it.notablePerformances.isNotEmpty() }
+            val preferredTeamMatches = matches.filter { match ->
+                match.notablePerformances.isEmpty() && (preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) })
+            }
+            val otherMatches = matches.filter { match ->
+                match.notablePerformances.isEmpty() && !preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (matches.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No matches found.",
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                } else if (appMode == "fan") {
+                    // FAN MODE
+                    if (preferredTeams.isEmpty() && preferredPlayers.isEmpty() && idolName.isBlank()) {
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha=0.8f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("Enhance Your Fan Mode", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                    Spacer(Modifier.height(8.dp))
+                                    Text("Set up your favorite teams, players, idol, and a custom background wallpaper to truly personalize your fan experience.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                                    Spacer(Modifier.height(16.dp))
+                                    Button(onClick = { showBottomSheet = true }) {
+                                        Text("Set Up Fan Profile")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (favPlayerMatches.isNotEmpty()) {
+                        item {
+                            Text(
+                                "FAVORITE PLAYERS ACTIVE",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(favPlayerMatches) { match ->
+                            MatchCard(match = match, onClick = { onMatchSelect(match) })
+                        }
+                    }
+                    
+                    if (preferredTeamMatches.isNotEmpty()) {
+                        item {
+                            Text(
+                                "PREFERRED TEAMS",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(preferredTeamMatches) { match ->
+                            MatchCard(match = match, onClick = { onMatchSelect(match) })
+                        }
+                    }
+                    
+                    if (otherMatches.isNotEmpty()) {
+                        item {
+                            Text(
+                                if (favPlayerMatches.isEmpty() && preferredTeamMatches.isEmpty()) "ALL MATCHES" else "OTHER MATCHES",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(otherMatches) { match ->
+                            MatchCard(match = match, onClick = { onMatchSelect(match) })
+                        }
+                    }
+                    item { Spacer(modifier = Modifier.height(24.dp)) }
+                } else {
+                    // STANDARD MODE
+                    item {
+                        Text(
+                            "ALL MATCHES",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                    }
+                    items(matches) { match ->
+                        MatchCard(match = match, onClick = { onMatchSelect(match) })
+                    }
+                    item { Spacer(modifier = Modifier.height(24.dp)) }
+                }
+            }
+        }
+        } // close Box for the background
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+            ) {
+                Text("Settings & Profile", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                
+                // Theme Toggle
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Theme Mode", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
+                            .padding(4.dp)
+                    ) {
+                        listOf("Auto", "Light", "Dark").forEachIndexed { index, title ->
+                            val isSelected = themeMode == index
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                        RoundedCornerShape(50)
+                                    )
+                                    .clickable { onThemeModeChange(index) }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = title,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Fan Profile Edit
+                Text("Fan Profile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = userName,
+                    onValueChange = onUserNameChange,
+                    label = { Text("Your Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = idolName,
+                    onValueChange = onIdolNameChange,
+                    label = { Text("Your Idol (e.g. Virat Kohli)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val launcher = rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()) { uri ->
+                    if (uri != null) {
+                        onWallpaperChange(uri.toString())
+                    }
+                }
+                Button(
+                    onClick = { launcher.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(if (wallpaperUri.isNotBlank()) "Change Fan Wallpaper" else "Upload Custom Fan Wallpaper")
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Text("Favorite Teams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(110.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false).heightIn(max = 400.dp)
+                ) {
+                    globalCategories.forEach { category ->
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(category.name, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 16.dp, bottom = 4.dp))
+                        }
+                        items(category.teams) { team ->
+                            val isSelected = preferredTeams.contains(team)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    val newSet = if (isSelected) preferredTeams - team else preferredTeams + team
+                                    onPreferredTeamsChange(newSet)
+                                },
+                                label = { Text(team, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) },
+                                leadingIcon = if (isSelected) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                } else null,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Text("Favorite Players", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Enter player names separated by commas.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                
+                var playersText by remember { mutableStateOf(preferredPlayers.joinToString(", ")) }
+                OutlinedTextField(
+                    value = playersText,
+                    onValueChange = { 
+                        playersText = it
+                        val players = it.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+                        onPreferredPlayersChange(players)
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun PulsingLiveBadge() {
+    Surface(
+        color = MaterialTheme.colorScheme.errorContainer,
+        shape = RoundedCornerShape(6.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+    ) {
+        Text(
+            text = "LIVE",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.error,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun MatchCard(match: Match, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Determine if really live
+                val hasScore = match.score1.isNotEmpty() || match.score2.isNotEmpty()
+                val isComplete = match.status.contains("won by", true) || match.status.contains("drawn", true) || match.status.contains("complete", true) || match.status.contains("Recent", true)
+                val isUpcoming = match.status.contains("starts", true) || match.status.contains("upcoming", true) || match.status.contains("preview", true)
+                val isLive = !isComplete && !isUpcoming && hasScore
+                val isDelayedOrOther = !isComplete && !isUpcoming && !hasScore
+                
+                if (isLive) {
+                    PulsingLiveBadge()
+                } else if (isComplete) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "COMPLETE",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(6.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    ) {
+                        Text(
+                            text = if (isDelayedOrOther) "LIVE" else "UPCOMING",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                
+                Text(
+                    text = match.status,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).padding(start = 12.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            TeamScoreRow(teamName = match.team1, score = match.score1, overs = match.overs1, isUpcoming = match.status.contains("starts", true) || match.status.contains("upcoming", true) || match.status.contains("preview", true), isComplete = match.status.contains("won by", true) || match.status.contains("drawn", true) || match.status.contains("complete", true) || match.status.contains("Recent", true))
+            Spacer(modifier = Modifier.height(16.dp))
+            TeamScoreRow(teamName = match.team2, score = match.score2, overs = match.overs2, isUpcoming = match.status.contains("starts", true) || match.status.contains("upcoming", true) || match.status.contains("preview", true), isComplete = match.status.contains("won by", true) || match.status.contains("drawn", true) || match.status.contains("complete", true) || match.status.contains("Recent", true))
+            
+            if (match.notablePerformances.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = "Favorite Player", tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = match.notablePerformances,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TeamScoreRow(teamName: String, score: String, overs: String, isUpcoming: Boolean = false, isComplete: Boolean = false) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = teamName.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = teamName,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            if (score.isNotEmpty()) {
+                Text(
+                    text = score,
+                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            if (overs.isNotEmpty()) {
+                Text(
+                    text = "($overs)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MatchDetailScreen(
+    match: Match,
+    pipHintShown: Boolean,
+    onDismissPipHint: () -> Unit,
+    onBack: () -> Unit,
+    onEnterPip: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("${match.team1} vs ${match.team2}", style = MaterialTheme.typography.titleMedium) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        onDismissPipHint()
+                        onEnterPip()
+                    }) {
+                        Icon(Icons.Default.PictureInPicture, contentDescription = "Enter PiP")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(padding)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                MatchCard(match = match, onClick = { /* already viewing */ })
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                OutlinedButton(
+                    onClick = onEnterPip,
+                    modifier = Modifier.fillMaxWidth(),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.PictureInPicture, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Minimize to Floating Player", fontWeight = FontWeight.Bold)
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                if (match.matchUrl.isNotEmpty()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(Icons.Default.SportsCricket, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Advanced Match Center", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Want ball-by-ball commentary and deep player stats? Open the official scorecard in your browser.", 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            val context = LocalContext.current
+                            Button(
+                                onClick = { 
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(match.matchUrl))
+                                    context.startActivity(intent)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Open Full Scorecard")
+                            }
+                        }
+                    }
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(Icons.Default.SportsCricket, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Match Center", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Live webview is not available for this match.", 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // PiP Hint Overlay
+            if (!pipHintShown) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .padding(padding)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 8.dp, end = 16.dp)
+                            .width(250.dp)
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(16.dp),
+                            shadowElevation = 8.dp
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    "Mini Floating Player 🚀", 
+                                    style = MaterialTheme.typography.titleMedium, 
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Keep the score on your screen while using other apps! Tap the ◱ icon in the top right, or just press your phone's Home button.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = onDismissPipHint,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Text("Got it")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PipScoreCard(match: Match) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = match.team1.take(3).uppercase(), 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = match.score1.ifEmpty { "0/0" }, 
+                        color = MaterialTheme.colorScheme.primary, 
+                        fontWeight = FontWeight.ExtraBold, 
+                        fontSize = 24.sp
+                    )
+                    if (match.overs1.isNotEmpty()) {
+                        Text(text = "(${match.overs1})", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                    }
+                }
+                
+                Text(text = "VS", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), fontSize = 12.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 8.dp))
+                
+                Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = match.team2.take(3).uppercase(), 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = match.score2.ifEmpty { "0/0" }, 
+                        color = MaterialTheme.colorScheme.primary, 
+                        fontWeight = FontWeight.ExtraBold, 
+                        fontSize = 24.sp
+                    )
+                    if (match.overs2.isNotEmpty()) {
+                        Text(text = "(${match.overs2})", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+val globalCategories = listOf(
+    TeamCategory("International", listOf("India", "Australia", "England", "South Africa", "New Zealand", "Pakistan", "Sri Lanka", "West Indies", "Bangladesh", "Afghanistan", "Zimbabwe", "Ireland", "Netherlands", "Scotland", "Nepal")),
+    TeamCategory("Leagues", listOf("IPL", "BBL", "PSL", "CPL", "SA20", "MLC", "WPL", "The Hundred", "LPL", "Global T20", "BPL", "Super Smash"))
+)
+
+data class TeamCategory(val name: String, val teams: List<String>)
+
+@Composable
+fun OnboardingScreen(suggestedPlayers: List<String>, onFetchPlayers: (Set<String>) -> Unit, onComplete: (Set<String>, Set<String>) -> Unit) {
+    var step by remember { mutableStateOf(1) }
+    var selectedTeams by remember { mutableStateOf(setOf<String>()) }
+    var preferredPlayersText by remember { mutableStateOf("") }
+    
+    val categories = globalCategories
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        AnimatedContent(
+            targetState = step,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(500))
+            },
+            label = "onboarding_step"
+        ) { targetStep ->
+        if (targetStep == 1) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(32.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.SportsCricket,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(48.dp))
+                Text(
+                    text = "Welcome to CricLive",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Lightning fast live scores, PiP mode, and a feed personalized to your favorite teams and players.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(64.dp))
+                Button(
+                    onClick = { step = 2 },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        } else if (targetStep == 2) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "Favorite Teams",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Select teams or leagues to prioritize them at the top of your feed.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(110.dp),
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    categories.forEach { category ->
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = category.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(category.teams) { team ->
+                            val isSelected = selectedTeams.contains(team)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    if (isSelected) {
+                                        selectedTeams = selectedTeams - team
+                                    } else if (selectedTeams.size < 10) {
+                                        selectedTeams = selectedTeams + team
+                                    }
+                                },
+                                leadingIcon = if (isSelected) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                } else null,
+                                label = { 
+                                    Text(
+                                        team, 
+                                        modifier = Modifier.fillMaxWidth(), 
+                                        textAlign = TextAlign.Center 
+                                    ) 
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { 
+                        onFetchPlayers(selectedTeams)
+                        step = 3 
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Text("Next", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "Favorite Players",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Get notified and see highlights when your favorite players are in the squad! Enter names separated by commas.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                var selectedPlayers by remember { mutableStateOf(setOf<String>()) }
+                
+                if (suggestedPlayers.isEmpty()) {
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(140.dp),
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(suggestedPlayers) { player ->
+                            val isSelected = selectedPlayers.contains(player)
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    if (isSelected) selectedPlayers = selectedPlayers - player
+                                    else selectedPlayers = selectedPlayers + player
+                                },
+                                leadingIcon = if (isSelected) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                } else {
+                                    { Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                },
+                                label = { Text(player, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                OutlinedTextField(
+                    value = preferredPlayersText,
+                    onValueChange = { preferredPlayersText = it },
+                    label = { Text("Or enter custom names (comma separated)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = { 
+                        val customPlayers = preferredPlayersText.split(",")
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                            .toSet()
+                        val allPlayers = selectedPlayers + customPlayers
+                        onComplete(selectedTeams, allPlayers) 
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Text(if (selectedTeams.isEmpty() && selectedPlayers.isEmpty() && preferredPlayersText.isEmpty()) "Skip for now" else "Finish Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        }
+    }
+}
+

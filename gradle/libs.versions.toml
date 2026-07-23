@@ -1,4 +1,6 @@
 [versions]
+koin = "3.5.3"
+workRuntimeKtx = "2.10.0"
 agp = "9.1.1"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -44,6 +46,9 @@ googleid = "1.1.1"
 
 
 [libraries]
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

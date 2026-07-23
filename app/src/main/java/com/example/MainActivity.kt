@@ -8,37 +8,33 @@ import android.util.Rational
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.ui.CricketApp
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.CricketViewModel
 
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: CricketViewModel by viewModels()
+    private val viewModel: CricketViewModel by viewModel()
     private var isPipMode by mutableStateOf(false)
-    private var isFirstLaunch by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        val prefs = getSharedPreferences("CricLivePrefs", android.content.Context.MODE_PRIVATE)
-        isFirstLaunch = prefs.getBoolean("isFirstLaunch", true)
-        
+        val matchId = intent.getStringExtra("MATCH_ID")
         setContent {
-            MyApplicationTheme {
+            val isFirstLaunch by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle(initialValue = false)
+            val pipHintShown by viewModel.pipHintShown.collectAsStateWithLifecycle(initialValue = false)
+            
+            MyApplicationTheme(darkTheme = false) {
                 CricketApp(
                     viewModel = viewModel,
                     isPipMode = isPipMode,
-                    isFirstLaunch = isFirstLaunch,
-                    onOnboardingComplete = {
-                        prefs.edit().putBoolean("isFirstLaunch", false).apply()
-                        isFirstLaunch = false
-                    },
                     onEnterPip = { enterPip() }
                 )
             }
@@ -48,7 +44,8 @@ class MainActivity : ComponentActivity() {
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         // Automatically enter PiP when leaving the app if viewing a match
-        if (viewModel.selectedMatchId.value != null) {
+        val state = viewModel.uiState.value
+        if (state is com.example.viewmodel.CricketUiState.Success && state.selectedMatchId != null) {
             enterPip()
         }
     }
