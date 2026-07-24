@@ -43,29 +43,80 @@ fun PipScoreCard(match: Match) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(4.dp),
+            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(match.team1, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF111827), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Team 1
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = match.team1.take(3).uppercase(),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF111827),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = match.score1.ifEmpty { "0/0" },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF374151),
+                    maxLines = 1
+                )
+                Text(
+                    text = match.overs1.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it },
+                    fontSize = 10.sp,
+                    color = Color(0xFF6B7280),
+                    maxLines = 1
+                )
+            }
+            
+            // VS
             Text(
-                text = "${match.score1} ${match.overs1}".trim(),
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = Color(0xFF374151),
-                maxLines = 1
+                text = "VS",
+                fontSize = 12.sp,
+                color = Color(0xFF9CA3AF),
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text("vs", fontSize = 10.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(match.team2, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF111827), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Text(
-                text = "${match.score2} ${match.overs2}".trim(),
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = Color(0xFF374151),
-                maxLines = 1
-            )
+            
+            // Team 2
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = match.team2.take(3).uppercase(),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF111827),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = match.score2.ifEmpty { "0/0" },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF374151),
+                    maxLines = 1
+                )
+                Text(
+                    text = match.overs2.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it },
+                    fontSize = 10.sp,
+                    color = Color(0xFF6B7280),
+                    maxLines = 1
+                )
+            }
         }
     }
 }

@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
 
     private fun enterPip() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val aspectRatio = Rational(16, 9)
+            val aspectRatio = Rational(2, 1)
             val params = PictureInPictureParams.Builder()
                 .setAspectRatio(aspectRatio)
                 .build()
