@@ -48,6 +48,28 @@ fun MatchListScreen(
 ) {
     val tabs = listOf("All Matches", "My Teams")
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var showModeTooltip by remember { mutableStateOf(false) }
+
+    if (showModeTooltip) {
+        AlertDialog(
+            onDismissRequest = { showModeTooltip = false },
+            title = { Text("App Modes", fontWeight = FontWeight.Bold) },
+            text = { 
+                Column {
+                    Text("Fan Mode:", fontWeight = FontWeight.Bold)
+                    Text("Get a personalized layout with your favorite player's wallpaper, quick access to top stats, and customized themes.", fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Standard Mode:", fontWeight = FontWeight.Bold)
+                    Text("A clean, traditional list of all cricket matches without extra visuals or wallpapers.", fontSize = 14.sp)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showModeTooltip = false }) {
+                    Text("Got it")
+                }
+            }
+        )
+    }
 
     val matchesToShow = if (selectedTabIndex == 1 && state.preferredTeams.isNotEmpty()) {
         state.matches.filter { match ->
@@ -64,6 +86,9 @@ fun MatchListScreen(
             TopAppBar(
                 title = { Text("CricLive", fontWeight = FontWeight.ExtraBold, color = Color(0xFF111827)) },
                 actions = {
+                    IconButton(onClick = { showModeTooltip = true }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Info, contentDescription = "Mode Info", tint = Color(0xFF6B7280))
+                    }
                     TextButton(
                         onClick = onFanModeClick,
                         modifier = Modifier
@@ -143,11 +168,42 @@ fun MatchListScreen(
             )
 
             var showWidgetBanner by remember { mutableStateOf(true) }
+            var showLiveWarningBanner by remember { mutableStateOf(true) }
+            
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (showLiveWarningBanner) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(40.dp).background(Color(0xFFF59E0B), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.White)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Best for Live Matches", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
+                                    Text("This app is optimized for live matches relying on Cricbuzz data. Past matches may have limited details.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFB45309))
+                                }
+                                IconButton(onClick = { showLiveWarningBanner = false }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = Color(0xFF92400E))
+                                }
+                            }
+                        }
+                    }
+                }
                 if (showWidgetBanner) {
                     item {
                         Card(

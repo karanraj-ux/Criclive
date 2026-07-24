@@ -88,8 +88,8 @@ class CricketRepository(private val context: android.content.Context) {
                     if (existing == null) {
                         dedupedMap[match.id] = match
                     } else {
-                        val newScore = getStatusPriority(match.status)
-                        val oldScore = getStatusPriority(existing.status)
+                        val newScore = getStatusPriority(match)
+                        val oldScore = getStatusPriority(existing)
                         if (newScore > oldScore) {
                             dedupedMap[match.id] = match
                         } else if (newScore == oldScore) {
@@ -166,130 +166,136 @@ class CricketRepository(private val context: android.content.Context) {
         }.onStart { emit(FetchResult.Loading) }.flowOn(Dispatchers.IO)
     }
 
-    private fun getStatusPriority(status: String): Int {
-        val s = status.lowercase()
-        if (s.contains("live") || s.contains("*")) return 3
-        if (s.contains("won by") || s.contains("complete") || s.contains("drawn") || s.contains("recent")) return 2
-        return 1 // upcoming or others
+    private fun getStatusPriority(match: Match): Int {
+        return when (match.matchState) {
+            "LIVE" -> 3
+            "COMPLETE" -> 2
+            else -> 1
+        }
     }
 
-    private fun mapTitleToMatch(
-        rawTitle: String, 
-        link: String = "", 
-        liveStats: String = "",
-        rawSeries: String = "",
-        rawTiming: String = ""
-    ): Match {
-        val title = rawTitle.replace("via rss", "", ignoreCase = true).trim()
-        
-        var team1Full = title
-        var team2Full = ""
-        var status = "Live Match"
-        
-        if (title.contains(" vs ", ignoreCase = true) && title.contains(" - ")) {
-            val parts = title.split(" - ", limit = 2)
-            status = parts.getOrNull(1)?.trim() ?: ""
-            val matchDesc = parts[0].trim()
-            val teamsAndDesc = matchDesc.split(",", limit = 2)
-            val teamsPart = teamsAndDesc[0].trim()
-            if (teamsAndDesc.size > 1) {
-                status = teamsAndDesc[1].trim() + " - " + status
-            }
-            val teamParts = teamsPart.split(" vs ", ignoreCase = true)
-            team1Full = teamParts.getOrNull(0)?.trim() ?: teamsPart
-            team2Full = teamParts.getOrNull(1)?.trim() ?: ""
-        } else {
-            val parts = title.split(" v ", ignoreCase = true)
-            team1Full = parts.getOrNull(0)?.trim() ?: title
-            team2Full = parts.getOrNull(1)?.trim() ?: ""
+    companion object {
+        fun mapTitleToMatch(
+            rawTitle: String, 
+            link: String = "", 
+            liveStats: String = "",
+            rawSeries: String = "",
+            rawTiming: String = ""
+        ): Match {
+            val title = rawTitle.replace("via rss", "", ignoreCase = true).trim()
             
+            var team1Full = title
+            var team2Full = ""
+            var status = "Live Match"
+            
+            val commaSplit = title.split(",", limit = 2)
+            var teamsPart = title
+            if (commaSplit.size > 1) {
+                teamsPart = commaSplit[0].trim()
+                status = commaSplit[1].trim()
+            }
+
+            if (teamsPart.contains(" vs ", ignoreCase = true)) {
+                val teamParts = teamsPart.split(Regex(" vs ", RegexOption.IGNORE_CASE), limit = 2)
+                team1Full = teamParts[0].trim()
+                team2Full = teamParts[1].trim()
+            } else if (teamsPart.contains(" v ", ignoreCase = true)) {
+                val teamParts = teamsPart.split(Regex(" v ", RegexOption.IGNORE_CASE), limit = 2)
+                team1Full = teamParts[0].trim()
+                team2Full = teamParts[1].trim()
+            }
+
             if (team2Full.contains(" at ")) {
-                val atParts = team2Full.split(" at ")
+                val atParts = team2Full.split(" at ", limit = 2)
                 team2Full = atParts[0].trim()
-                val locationAndTime = atParts.drop(1).joinToString(" at ").trim()
-                if (!team1Full.any { it.isDigit() } && !team2Full.any { it.isDigit() }) {
+                val locationAndTime = atParts[1].trim()
+                if (status.isEmpty() || status == "Live Match") {
                     status = "Starts: $locationAndTime"
                 }
             }
-        }
-
-        val (t1Name, t1Score, t1Overs) = extractNameAndScore(team1Full)
-        val (t2Name, t2Score, t2Overs) = extractNameAndScore(team2Full)
-        val id = (t1Name + t2Name).hashCode().toString()
-
-        val derivedSeries = if (rawSeries.isNotBlank()) rawSeries else {
-            val combinedText = "$title $status"
-            when {
-                combinedText.contains("IPL", true) || combinedText.contains("Premier League", true) -> "Indian Premier League"
-                combinedText.contains("T20 World Cup", true) -> "ICC T20 World Cup"
-                combinedText.contains("World Cup", true) -> "ICC Cricket World Cup"
-                combinedText.contains("BBL", true) || combinedText.contains("Big Bash", true) -> "Big Bash League"
-                combinedText.contains("PSL", true) -> "Pakistan Super League"
-                combinedText.contains("CPL", true) -> "Caribbean Premier League"
-                combinedText.contains("The Hundred", true) -> "The Hundred"
-                combinedText.contains("WPL", true) -> "Women's Premier League"
-                combinedText.contains("Test", true) -> "Test Championship Series"
-                combinedText.contains("T20I", true) || combinedText.contains("T20", true) -> "T20 International Series"
-                combinedText.contains("ODI", true) -> "ODI International Series"
-                else -> "Cricket Series"
+            
+            if (status.isEmpty()) {
+                 status = "Live Match"
             }
-        }
 
-        val derivedTiming = if (rawTiming.isNotBlank()) rawTiming else {
-            if (status.contains("Starts:", true)) {
-                status.replace("Starts:", "").trim()
-            } else if (status.contains("Live", true) || status.contains("*")) {
-                "In Progress"
-            } else {
-                "Match Update"
+            val (t1Name, t1Score, t1Overs) = extractNameAndScore(team1Full)
+            val (t2Name, t2Score, t2Overs) = extractNameAndScore(team2Full)
+            val id = (t1Name + t2Name).hashCode().toString()
+
+            val derivedSeries = if (rawSeries.isNotBlank()) rawSeries else {
+                val combinedText = "$title $status"
+                when {
+                    combinedText.contains("IPL", true) || combinedText.contains("Premier League", true) -> "Indian Premier League"
+                    combinedText.contains("T20 World Cup", true) -> "ICC T20 World Cup"
+                    combinedText.contains("World Cup", true) -> "ICC Cricket World Cup"
+                    combinedText.contains("BBL", true) || combinedText.contains("Big Bash", true) -> "Big Bash League"
+                    combinedText.contains("PSL", true) -> "Pakistan Super League"
+                    combinedText.contains("CPL", true) -> "Caribbean Premier League"
+                    combinedText.contains("The Hundred", true) -> "The Hundred"
+                    combinedText.contains("WPL", true) -> "Women's Premier League"
+                    combinedText.contains("Test", true) -> "Test Championship Series"
+                    combinedText.contains("T20I", true) || combinedText.contains("T20", true) -> "T20 International Series"
+                    combinedText.contains("ODI", true) -> "ODI International Series"
+                    else -> "Cricket Series"
+                }
             }
-        }
 
-        return Match(
-            id = id,
-            team1 = t1Name,
-            team2 = t2Name,
-            score1 = t1Score,
-            score2 = t2Score,
-            overs1 = t1Overs,
-            overs2 = t2Overs,
-            status = status,
-            seriesName = derivedSeries,
-            matchTiming = derivedTiming,
-            liveCommentary = emptyList(),
-            matchUrl = link.replace("http://", "https://"),
-            notablePerformances = liveStats
-        )
-    }
-
-    private fun extractNameAndScore(fullStr: String): Triple<String, String, String> {
-        var strToProcess = fullStr.trim()
-        val hasStar = strToProcess.endsWith("*")
-        if (hasStar) {
-            strToProcess = strToProcess.dropLast(1).trim()
-        }
-        
-        // Regex to match optional overs like "(43.6 ov)" at the end
-        val overRegex = Regex("""\(([^)]+)\)$""")
-        var overs = ""
-        val overMatch = overRegex.find(strToProcess)
-        if (overMatch != null) {
-            overs = overMatch.groupValues[1].trim()
-            strToProcess = strToProcess.substring(0, overMatch.range.first).trim()
-        }
-        
-        val scoreRegex = Regex("""(\d+(?:/\d+)?(?:\s*(?:d|\*))?)$""")
-        val match = scoreRegex.find(strToProcess)
-        if (match != null) {
-            var scorePart = match.groupValues[1].trim()
-            if (hasStar && !scorePart.endsWith("*")) {
-                scorePart += " *"
+            val derivedTiming = if (rawTiming.isNotBlank()) rawTiming else {
+                if (status.contains("Starts:", true)) {
+                    status.replace("Starts:", "").trim()
+                } else if (status.contains("Live", true) || status.contains("*")) {
+                    "In Progress"
+                } else {
+                    "Match Update"
+                }
             }
-            val namePart = strToProcess.substring(0, match.range.first).trim()
-            return Triple(namePart, scorePart, overs)
+
+            return Match(
+                id = id,
+                team1 = t1Name,
+                team2 = t2Name,
+                score1 = t1Score,
+                score2 = t2Score,
+                overs1 = t1Overs,
+                overs2 = t2Overs,
+                status = status,
+                seriesName = derivedSeries,
+                matchTiming = derivedTiming,
+                liveCommentary = emptyList(),
+                matchUrl = link.replace("http://", "https://"),
+                notablePerformances = liveStats
+            )
         }
-        
-        return Triple(strToProcess, if (hasStar) "*" else "", overs)
+
+        private fun extractNameAndScore(fullStr: String): Triple<String, String, String> {
+            var strToProcess = fullStr.trim()
+            val hasStar = strToProcess.endsWith("*")
+            if (hasStar) {
+                strToProcess = strToProcess.dropLast(1).trim()
+            }
+            
+            val overRegex = Regex("""\(([^)]+)\)$""")
+            var overs = ""
+            val overMatch = overRegex.find(strToProcess)
+            if (overMatch != null) {
+                val parsedOvers = overMatch.groupValues[1].trim()
+                overs = if (parsedOvers.isNotEmpty()) "($parsedOvers)" else ""
+                strToProcess = strToProcess.substring(0, overMatch.range.first).trim()
+            }
+            
+            val scoreRegex = Regex("""(\d+(?:/\d+)?(?:\s*(?:d|\*))?)$""")
+            val match = scoreRegex.find(strToProcess)
+            if (match != null) {
+                var scorePart = match.groupValues[1].trim()
+                if (hasStar && !scorePart.endsWith("*")) {
+                    scorePart += " *"
+                }
+                val namePart = strToProcess.substring(0, match.range.first).trim()
+                return Triple(namePart, scorePart, overs)
+            }
+            
+            return Triple(strToProcess, if (hasStar) "*" else "", overs)
+        }
     }
     private suspend fun checkMatchForPreferredPlayers(match: Match, preferredPlayers: Set<String>): Match = withContext(Dispatchers.IO) {
         if (preferredPlayers.isEmpty() || match.matchUrl.isEmpty()) {

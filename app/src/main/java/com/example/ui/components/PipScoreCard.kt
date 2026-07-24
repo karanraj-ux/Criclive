@@ -43,17 +43,29 @@ fun PipScoreCard(match: Match) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(8.dp),
+            .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(match.team1, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF111827))
-            Text(match.score1, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF374151))
-            Spacer(modifier = Modifier.height(4.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(match.team1, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF111827), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(
+                text = "${match.score1} ${match.overs1}".trim(),
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = Color(0xFF374151),
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(2.dp))
             Text("vs", fontSize = 10.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(match.team2, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF111827))
-            Text(match.score2, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF374151))
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(match.team2, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF111827), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(
+                text = "${match.score2} ${match.overs2}".trim(),
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = Color(0xFF374151),
+                maxLines = 1
+            )
         }
     }
 }

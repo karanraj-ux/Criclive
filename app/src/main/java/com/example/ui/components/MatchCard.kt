@@ -38,7 +38,7 @@ import com.example.ui.screens.*
 
 @Composable
 fun MatchCard(match: Match, isPreferred: Boolean, onClick: () -> Unit) {
-    val isLive = match.status.contains("Live", ignoreCase = true) || match.status.contains("*")
+    val isLive = match.matchState == "LIVE"
     
     // India matches get the Tricolor border, otherwise just a thick primary border for preferred teams
     val isIndiaMatch = match.team1.contains("India", true) || match.team2.contains("India", true)
@@ -94,7 +94,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, onClick: () -> Unit) {
                     color = if (isLive) Color(0xFFFEE2E2) else Color(0xFFF3F4F6)
                 ) {
                     Text(
-                        text = if (isLive) "LIVE" else if (match.status.contains("Starts", true)) "UPCOMING" else "COMPLETE",
+                        text = match.matchState,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.ExtraBold,

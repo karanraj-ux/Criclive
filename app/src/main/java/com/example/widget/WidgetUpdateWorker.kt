@@ -12,6 +12,9 @@ import com.example.MainActivity
 import com.example.R
 import com.example.api.RssParser
 
+import kotlinx.coroutines.flow.first
+import com.example.model.Match
+
 class WidgetUpdateWorker(
     appContext: Context,
     workerParams: WorkerParameters
@@ -27,48 +30,35 @@ class WidgetUpdateWorker(
         }
 
         try {
+            val onboardingManager = com.example.data.OnboardingManager(applicationContext)
+            val preferredTeams = onboardingManager.preferredTeams.first()
+            
             val rawItems = RssParser.fetchLiveMatches()
-            val matchTitle = rawItems.firstOrNull { it.title.contains(" * ") || it.title.contains(" v ") }?.title
+            val parsedMatches = rawItems.map { com.example.data.CricketRepository.mapTitleToMatch(it.title, it.link, it.rawLiveStats, it.seriesName, it.matchTiming) }
+            
+            val preferredMatch = parsedMatches.firstOrNull { match -> 
+                preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) } && match.matchState == "LIVE"
+            } ?: parsedMatches.firstOrNull { it.matchState == "LIVE" }
+              ?: parsedMatches.firstOrNull()
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(applicationContext.packageName, R.layout.widget_layout)
                 
                 val intent = Intent(applicationContext, MainActivity::class.java)
-                if (matchTitle != null) {
-                    val parts = matchTitle.split(" v ")
-                    val team1Full = parts.getOrNull(0)?.trim() ?: ""
-                    val team2Full = parts.getOrNull(1)?.trim() ?: ""
-                    val scoreRegex = Regex("""(\d+(?:/\d+)?(?:\s*(?:d|\*))?)$""")
+                if (preferredMatch != null) {
+                    intent.putExtra("MATCH_ID", preferredMatch.id)
                     
-                    var t1Name = team1Full
-                    var t1Score = ""
-                    val m1 = scoreRegex.find(team1Full)
-                    if (m1 != null) {
-                        t1Score = m1.groupValues[1].trim()
-                        t1Name = team1Full.substring(0, m1.range.first).trim()
-                    }
+                    val displayStatus = if (preferredMatch.matchState == "LIVE") "LIVE" else "COMPLETE/UPCOMING"
                     
-                    var t2Name = team2Full
-                    var t2Score = ""
-                    val m2 = scoreRegex.find(team2Full)
-                    if (m2 != null) {
-                        t2Score = m2.groupValues[1].trim()
-                        t2Name = team2Full.substring(0, m2.range.first).trim()
-                    }
-                    if (t2Name.contains(" at ")) {
-                        t2Name = t2Name.split(" at ")[0].trim()
-                    }
+                    views.setTextViewText(R.id.widget_team1, preferredMatch.team1.take(3).uppercase())
+                    views.setTextViewText(R.id.widget_score1, preferredMatch.score1.ifEmpty { "0/0" })
+                    views.setTextViewText(R.id.widget_overs1, preferredMatch.overs1.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it })
                     
-                    val id = (t1Name + t2Name).hashCode().toString()
-                    intent.putExtra("MATCH_ID", id)
+                    views.setTextViewText(R.id.widget_team2, preferredMatch.team2.take(3).uppercase())
+                    views.setTextViewText(R.id.widget_score2, preferredMatch.score2.ifEmpty { "0/0" })
+                    views.setTextViewText(R.id.widget_overs2, preferredMatch.overs2.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it })
                     
-                    views.setTextViewText(R.id.widget_team1, t1Name.take(3).uppercase())
-                    views.setTextViewText(R.id.widget_score1, t1Score.ifEmpty { "0/0" })
-                    views.setTextViewText(R.id.widget_overs1, "")
-                    views.setTextViewText(R.id.widget_team2, t2Name.take(3).uppercase())
-                    views.setTextViewText(R.id.widget_score2, t2Score.ifEmpty { "0/0" })
-                    views.setTextViewText(R.id.widget_overs2, "")
-                    views.setTextViewText(R.id.widget_status, "LIVE")
+                    views.setTextViewText(R.id.widget_status, displayStatus)
                 } else {
                     views.setTextViewText(R.id.widget_status, "NO LIVE MATCHES")
                 }
