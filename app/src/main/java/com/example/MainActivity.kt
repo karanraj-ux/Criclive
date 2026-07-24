@@ -27,6 +27,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         val matchId = intent.getStringExtra("MATCH_ID")
+        if (matchId != null) {
+            viewModel.selectMatch(matchId)
+        }
+        
         setContent {
             val isFirstLaunch by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle(initialValue = false)
             val pipHintShown by viewModel.pipHintShown.collectAsStateWithLifecycle(initialValue = false)
@@ -38,6 +42,14 @@ class MainActivity : ComponentActivity() {
                     onEnterPip = { enterPip() }
                 )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        val matchId = intent.getStringExtra("MATCH_ID")
+        if (matchId != null) {
+            viewModel.selectMatch(matchId)
         }
     }
 

@@ -31,14 +31,10 @@ data class Match(
             } else if (lowerStatus.contains("won by") || lowerStatus.contains("abandoned") || lowerStatus.contains("drawn") || 
                        lowerStatus.contains("tied") || lowerStatus.contains("no result") || lowerStatus.contains("complete")) {
                 return "COMPLETE"
-            } else if (lowerStatus.contains("starts") || lowerStatus.contains("to begin") || lowerStatus.contains("delayed") || lowerStatus.contains("upcoming")) {
+            } else if (lowerStatus.contains("starts") || lowerStatus.contains("to begin") || lowerStatus.contains("delayed") || lowerStatus.contains("upcoming") || (score1.isEmpty() && score2.isEmpty())) {
                 return "UPCOMING"
             } else {
-                if (score1.isNotEmpty() || score2.isNotEmpty()) {
-                    return "COMPLETE"
-                } else {
-                    return "UPCOMING"
-                }
+                return "COMPLETE"
             }
         }
 }

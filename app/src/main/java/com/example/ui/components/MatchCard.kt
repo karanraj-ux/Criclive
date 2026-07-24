@@ -37,7 +37,22 @@ import com.example.ui.components.*
 import com.example.ui.screens.*
 
 @Composable
-fun MatchCard(match: Match, isPreferred: Boolean, onClick: () -> Unit) {
+fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onPinClick: (() -> Unit)? = null, onClick: () -> Unit) {
+    var showPinInfo by remember { mutableStateOf(false) }
+
+    if (showPinInfo) {
+        AlertDialog(
+            onDismissRequest = { showPinInfo = false },
+            title = { Text("Widget Pinning", fontWeight = FontWeight.Bold) },
+            text = { Text("Pin this match to display its live score directly on your home screen widget.\n\nOnly one match can be pinned at a time.") },
+            confirmButton = {
+                TextButton(onClick = { showPinInfo = false }) {
+                    Text("Got it")
+                }
+            }
+        )
+    }
+
     val isLive = match.matchState == "LIVE"
     
     // India matches get the Tricolor border, otherwise just a thick primary border for preferred teams
@@ -88,18 +103,60 @@ fun MatchCard(match: Match, isPreferred: Boolean, onClick: () -> Unit) {
                     )
                 }
 
-                // Status Badge
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isLive) Color(0xFFFEE2E2) else Color(0xFFF3F4F6)
-                ) {
-                    Text(
-                        text = match.matchState,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (isLive) Color(0xFFB91C1C) else Color(0xFF374151)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onPinClick != null) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isPinned) MaterialTheme.colorScheme.primaryContainer else Color(0xFFF3F4F6),
+                            border = BorderStroke(1.dp, if (isPinned) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB)),
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .clickable { onPinClick() }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isPinned) Icons.Default.PushPin else Icons.Default.PushPin,
+                                    contentDescription = "Pin to Widget",
+                                    tint = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else Color(0xFF4B5563),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (isPinned) "Pinned" else "Pin",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else Color(0xFF4B5563)
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = { showPinInfo = true },
+                            modifier = Modifier.size(32.dp).padding(end = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "Pin Info",
+                                tint = Color(0xFF9CA3AF),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    // Status Badge
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isLive) Color(0xFFFEE2E2) else Color(0xFFF3F4F6)
+                    ) {
+                        Text(
+                            text = match.matchState,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isLive) Color(0xFFB91C1C) else Color(0xFF374151)
+                        )
+                    }
                 }
             }
 

@@ -4,6 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.widget.WidgetUpdateWorker
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -142,9 +145,16 @@ fun CricketApp(
                                 match = match,
                                 isPreferred = state.preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) },
                                 pipHintShown = pipHintShown,
+                                pinnedMatchId = state.pinnedMatchId,
                                 onDismissPipHint = { viewModel.setPipHintShown(true) },
                                 onBack = { viewModel.selectMatch(null) },
-                                onEnterPip = onEnterPip
+                                onEnterPip = onEnterPip,
+                                onPinToWidget = {
+                                    val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
+                                    viewModel.pinMatchToWidget(newPinnedId)
+                                    val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
+                                    WorkManager.getInstance(context).enqueue(workRequest)
+                                }
                             )
                         }
                     } else {
@@ -154,6 +164,12 @@ fun CricketApp(
                     MatchListScreen(
                         state = state,
                         onMatchClick = { viewModel.selectMatch(it.id) },
+                        onPinClick = { match -> 
+                            val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
+                            viewModel.pinMatchToWidget(newPinnedId)
+                            val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
+                            WorkManager.getInstance(context).enqueue(workRequest)
+                        },
                         onRefresh = { viewModel.refresh() },
                         onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                         onSettingsClick = { showSettings = true },

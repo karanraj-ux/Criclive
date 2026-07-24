@@ -42,9 +42,11 @@ fun MatchDetailScreen(
     match: Match,
     isPreferred: Boolean,
     pipHintShown: Boolean,
+    pinnedMatchId: String,
     onDismissPipHint: () -> Unit,
     onBack: () -> Unit,
-    onEnterPip: () -> Unit
+    onEnterPip: () -> Unit,
+    onPinToWidget: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -53,6 +55,16 @@ fun MatchDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF111827))
+                    }
+                },
+                actions = {
+                    val isPinned = pinnedMatchId == match.id
+                    IconButton(onClick = onPinToWidget) {
+                        Icon(
+                            Icons.Default.Star, 
+                            contentDescription = "Pin to Widget", 
+                            tint = if (isPinned) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

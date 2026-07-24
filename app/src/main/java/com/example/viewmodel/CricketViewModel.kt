@@ -22,7 +22,8 @@ sealed interface CricketUiState {
         val preferredPlayers: Set<String> = emptySet(),
         val idolName: String = "",
         val wallpaperUri: String = "",
-        val appMode: String = "Standard"
+        val appMode: String = "Standard",
+        val pinnedMatchId: String = ""
     ) : CricketUiState
     data class Error(val message: String) : CricketUiState
 }
@@ -55,10 +56,15 @@ val uiState: StateFlow<CricketUiState> = combine(
             _selectedMatchId, 
             _lastUpdated, 
             onboardingManager.idolName,
-            onboardingManager.wallpaperUri,
-            onboardingManager.appMode
-        ) { id, time, idol, wp, mode ->  
-            FiveTuple(id, time, idol, wp, mode)
+            combine(
+                onboardingManager.wallpaperUri,
+                onboardingManager.appMode,
+                onboardingManager.widgetPinnedMatchId
+            ) { wp, mode, pinned ->
+                Triple(wp, mode, pinned)
+            }
+        ) { id, time, idol, triple ->  
+            SixTuple(id, time, idol, triple.first, triple.second, triple.third)
         }
     ) { fetchResult, query, preferredTeams, preferredPlayers, extra ->
         val selectedId = extra.a
@@ -66,6 +72,8 @@ val uiState: StateFlow<CricketUiState> = combine(
         val idolName = extra.c
         val wallpaperUri = extra.d
         val appMode = extra.e
+        val pinnedMatchId = extra.f
+        
         when (fetchResult) {
             is FetchResult.Loading -> CricketUiState.Loading
             is FetchResult.Error -> CricketUiState.Error(fetchResult.message)
@@ -105,7 +113,8 @@ val uiState: StateFlow<CricketUiState> = combine(
                     preferredPlayers = preferredPlayers,
                     idolName = idolName,
                     wallpaperUri = wallpaperUri,
-                    appMode = appMode
+                    appMode = appMode,
+                    pinnedMatchId = pinnedMatchId
                 )
             }
         }
@@ -196,6 +205,13 @@ val uiState: StateFlow<CricketUiState> = combine(
             _suggestedPlayers.value = players
         }
     }
+
+    fun pinMatchToWidget(matchId: String) {
+        viewModelScope.launch {
+            onboardingManager.saveWidgetPinnedMatchId(matchId)
+        }
+    }
 }
 
 data class FiveTuple<A, B, C, D, E>(val a: A, val b: B, val c: C, val d: D, val e: E)
+data class SixTuple<A, B, C, D, E, F>(val a: A, val b: B, val c: C, val d: D, val e: E, val f: F)

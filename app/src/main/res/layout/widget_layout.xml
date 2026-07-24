@@ -20,13 +20,22 @@
 
         <TextView
             android:id="@+id/widget_status"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
+            android:layout_weight="1"
             android:text="LIVE"
             android:textColor="#FF0000"
             android:textSize="10sp"
             android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/widget_refresh"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@android:drawable/ic_popup_sync"
+            android:tint="#80FFFFFF"
+            android:contentDescription="Refresh" />
     </LinearLayout>
 
     <LinearLayout

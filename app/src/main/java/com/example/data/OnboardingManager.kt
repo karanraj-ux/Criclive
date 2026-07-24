@@ -25,6 +25,7 @@ class OnboardingManager(private val context: Context) {
         val WALLPAPER_URI = stringPreferencesKey("wallpaper_uri")
         val APP_MODE = stringPreferencesKey("app_mode")
         val FUNDING_DISMISSED = booleanPreferencesKey("funding_dismissed")
+        val WIDGET_PINNED_MATCH_ID = stringPreferencesKey("widget_pinned_match_id")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -57,6 +58,10 @@ class OnboardingManager(private val context: Context) {
         preferences[FUNDING_DISMISSED] ?: false
     }
 
+
+    val widgetPinnedMatchId: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[WIDGET_PINNED_MATCH_ID] ?: ""
+    }
 
     suspend fun saveOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { preferences ->
@@ -103,6 +108,12 @@ class OnboardingManager(private val context: Context) {
     suspend fun saveFundingDismissed(dismissed: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[FUNDING_DISMISSED] = dismissed
+        }
+    }
+
+    suspend fun saveWidgetPinnedMatchId(matchId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[WIDGET_PINNED_MATCH_ID] = matchId
         }
     }
 }

@@ -41,6 +41,7 @@ import com.example.ui.screens.*
 fun MatchListScreen(
     state: CricketUiState.Success,
     onMatchClick: (Match) -> Unit,
+    onPinClick: (Match) -> Unit,
     onRefresh: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSettingsClick: () -> Unit,
@@ -302,7 +303,13 @@ fun MatchListScreen(
                 } else {
                     items(matchesToShow, key = { it.id }) { match ->
                         val isPreferred = state.preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) }
-                        MatchCard(match = match, isPreferred = isPreferred, onClick = { onMatchClick(match) })
+                        MatchCard(
+                            match = match, 
+                            isPreferred = isPreferred, 
+                            isPinned = match.id == state.pinnedMatchId,
+                            onPinClick = { onPinClick(match) },
+                            onClick = { onMatchClick(match) }
+                        )
                     }
                 }
             }
