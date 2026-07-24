@@ -44,6 +44,7 @@ class CricketViewModel(
 
     val isOnboardingCompleted = onboardingManager.isOnboardingCompleted
     val pipHintShown = onboardingManager.pipHintShown
+    val fundingDismissed = onboardingManager.fundingDismissed
 
 val uiState: StateFlow<CricketUiState> = combine(
         _fetchResult,
@@ -174,6 +175,12 @@ val uiState: StateFlow<CricketUiState> = combine(
     fun updateAppMode(mode: String) {
         viewModelScope.launch {
             onboardingManager.saveAppMode(mode)
+        }
+    }
+
+    fun dismissFunding() {
+        viewModelScope.launch {
+            onboardingManager.saveFundingDismissed(true)
         }
     }
 

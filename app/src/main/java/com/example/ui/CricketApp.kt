@@ -54,6 +54,7 @@ fun CricketApp(
     val uiState by viewModel.uiState.collectAsState()
     val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState(initial = false)
     val pipHintShown by viewModel.pipHintShown.collectAsState(initial = false)
+    val fundingDismissed by viewModel.fundingDismissed.collectAsState(initial = false)
     val suggestedPlayers by viewModel.suggestedPlayers.collectAsState()
 
     var showSettings by remember { mutableStateOf(false) }
@@ -62,8 +63,8 @@ fun CricketApp(
     var appUpdate by remember { mutableStateOf<AppUpdate?>(null) }
 
     LaunchedEffect(Unit) {
-        // In a real open-source app, replace getMockUpdate() with checkForUpdate()
-        val update = UpdateManager.getMockUpdate()
+        // Checking for a real update from GitHub Releases
+        val update = UpdateManager.checkForUpdate()
         if (update != null && update.isUpdateAvailable && update.version != BuildConfig.VERSION_NAME) {
             appUpdate = update
         }

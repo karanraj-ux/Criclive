@@ -24,6 +24,7 @@ class OnboardingManager(private val context: Context) {
         val IDOL_NAME = stringPreferencesKey("idol_name")
         val WALLPAPER_URI = stringPreferencesKey("wallpaper_uri")
         val APP_MODE = stringPreferencesKey("app_mode")
+        val FUNDING_DISMISSED = booleanPreferencesKey("funding_dismissed")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -50,6 +51,10 @@ class OnboardingManager(private val context: Context) {
     }
     val appMode: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[APP_MODE] ?: "Standard"
+    }
+
+    val fundingDismissed: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[FUNDING_DISMISSED] ?: false
     }
 
 
@@ -92,6 +97,12 @@ class OnboardingManager(private val context: Context) {
     suspend fun saveAppMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[APP_MODE] = mode
+        }
+    }
+    
+    suspend fun saveFundingDismissed(dismissed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[FUNDING_DISMISSED] = dismissed
         }
     }
 }
