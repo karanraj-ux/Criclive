@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # Allows you to manually trigger the build via GitHub website
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -34,12 +34,9 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
 
-    - name: Rename APK
-      run: |
-        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/CricLive.apk
-
-    - name: Upload Built APK
+    # This modern wildcard expression safely locates and names your download folder without crashing
+    - name: Upload Built APKs
       uses: actions/upload-artifact@v4
       with:
         name: CricLive-Distribution-Build
-        path: app/build/outputs/apk/debug/CricLive.apk
+        path: app/build/outputs/apk/debug/*.apk
