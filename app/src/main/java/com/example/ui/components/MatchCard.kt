@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -215,7 +216,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = if (isFavUpdate) Icons.Default.Star else Icons.Default.TrendingUp,
+                            imageVector = if (isFavUpdate) Icons.Default.Star else Icons.AutoMirrored.Filled.TrendingUp,
                             contentDescription = "Fav Player Update",
                             tint = if (isFavUpdate) Color(0xFFD97706) else MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(18.dp)

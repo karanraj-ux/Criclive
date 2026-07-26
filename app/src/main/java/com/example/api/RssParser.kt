@@ -108,8 +108,12 @@ object RssParser {
     }
 
     private fun parseCricbuzzHtml(html: String, cbUrl: String, matches: MutableList<RssItem>, titles: MutableSet<String>) {
-        val searchStr = "\"typeMatches\":["
-        val idx = html.indexOf(searchStr)
+        var searchStr = "\"typeMatches\":["
+        var idx = html.indexOf(searchStr)
+        if (idx == -1) {
+            searchStr = "\\\"typeMatches\\\":["
+            idx = html.indexOf(searchStr)
+        }
         if (idx == -1) return
         
         val startIdx = idx + searchStr.length - 1

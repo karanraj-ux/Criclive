@@ -37,11 +37,14 @@ class WidgetUpdateWorker(
             val rawItems = RssParser.fetchLiveMatches()
             val parsedMatches = rawItems.map { com.example.data.CricketRepository.mapTitleToMatch(it.title, it.link, it.rawLiveStats, it.seriesName, it.matchTiming) }
             
-            val preferredMatch = (if (pinnedMatchId.isNotEmpty()) parsedMatches.firstOrNull { it.id == pinnedMatchId } else null)
-                ?: parsedMatches.firstOrNull { match -> 
+            val preferredMatch = if (pinnedMatchId.isNotEmpty()) {
+                parsedMatches.firstOrNull { it.id == pinnedMatchId }
+            } else {
+                parsedMatches.firstOrNull { match -> 
                     preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) } && match.matchState == "LIVE"
                 } ?: parsedMatches.firstOrNull { it.matchState == "LIVE" }
                   ?: parsedMatches.firstOrNull()
+            }
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(applicationContext.packageName, R.layout.widget_layout)
@@ -62,8 +65,15 @@ class WidgetUpdateWorker(
                     
                     views.setTextViewText(R.id.widget_status, displayStatus)
                 } else {
-                    views.setTextViewText(R.id.widget_status, "NO LIVE MATCHES")
+                    views.setTextViewText(R.id.widget_status, if (pinnedMatchId.isNotEmpty()) "NOT FOUND" else "NO LIVE MATCHES")
+                    views.setTextViewText(R.id.widget_team1, "--")
+                    views.setTextViewText(R.id.widget_score1, "-")
+                    views.setTextViewText(R.id.widget_overs1, "")
+                    views.setTextViewText(R.id.widget_team2, "--")
+                    views.setTextViewText(R.id.widget_score2, "-")
+                    views.setTextViewText(R.id.widget_overs2, "")
                 }
+
                 
                 val pendingIntent = PendingIntent.getActivity(applicationContext, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
@@ -85,6 +95,12 @@ class WidgetUpdateWorker(
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(applicationContext.packageName, R.layout.widget_layout)
                 views.setTextViewText(R.id.widget_status, "ERROR")
+                views.setTextViewText(R.id.widget_team1, "--")
+                views.setTextViewText(R.id.widget_score1, "-")
+                views.setTextViewText(R.id.widget_overs1, "")
+                views.setTextViewText(R.id.widget_team2, "--")
+                views.setTextViewText(R.id.widget_score2, "-")
+                views.setTextViewText(R.id.widget_overs2, "")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             return Result.retry()
