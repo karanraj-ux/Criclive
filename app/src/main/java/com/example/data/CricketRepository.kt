@@ -57,7 +57,7 @@ class CricketRepository(private val context: android.content.Context) {
                     
                     !isExcluded && (isMajor || isPreferredTeam)
                 }.map { item -> 
-                    mapTitleToMatch(item.title, item.link, item.rawLiveStats, item.seriesName, item.matchTiming) 
+                    mapItemToMatch(item) 
                 }.map { match ->
                     val highlightStats = mutableListOf<String>()
                     if (match.notablePerformances.isNotEmpty()) {
@@ -93,30 +93,37 @@ class CricketRepository(private val context: android.content.Context) {
                         if (newScore > oldScore) {
                             dedupedMap[match.id] = match
                         } else if (newScore == oldScore) {
-                            // If same priority, prefer the one with scores
-                            if (match.score1.isNotEmpty() && existing.score1.isEmpty()) {
-                                dedupedMap[match.id] = match
-                            } else if (match.score1.isNotEmpty() && existing.score1.isNotEmpty()) {
-                                // Merge details to get the best of both (e.g. Cricbuzz + RSS)
-                                var updated = existing
-                                if (match.score1.contains("*") && !existing.score1.contains("*")) {
-                                    updated = updated.copy(score1 = existing.score1 + " *")
-                                }
-                                if (match.score2.contains("*") && !existing.score2.contains("*")) {
-                                    updated = updated.copy(score2 = existing.score2 + " *")
-                                }
-                                if ((updated.matchTiming == "Match Update" || updated.matchTiming == "In Progress") && 
-                                    match.matchTiming != "Match Update" && match.matchTiming != "In Progress" && match.matchTiming.isNotBlank()) {
-                                    updated = updated.copy(matchTiming = match.matchTiming)
-                                }
-                                if (updated.seriesName == "Cricket Series" && match.seriesName != "Cricket Series" && match.seriesName.isNotBlank()) {
-                                    updated = updated.copy(seriesName = match.seriesName)
-                                }
-                                if (updated.notablePerformances.isBlank() && match.notablePerformances.isNotBlank()) {
-                                    updated = updated.copy(notablePerformances = match.notablePerformances)
-                                }
-                                dedupedMap[match.id] = updated
+                            // Prefer Cricbuzz if available, otherwise prefer the one with scores
+                            val baseMatch = if (match.matchUrl.contains("cricbuzz") && !existing.matchUrl.contains("cricbuzz")) {
+                                match
+                            } else if (existing.matchUrl.contains("cricbuzz") && !match.matchUrl.contains("cricbuzz")) {
+                                existing
+                            } else if (match.score1.isNotEmpty() && existing.score1.isEmpty()) {
+                                match
+                            } else {
+                                existing
                             }
+                            
+                            val otherMatch = if (baseMatch === match) existing else match
+                            
+                            var updated = baseMatch
+                            if (otherMatch.score1.contains("*") && !updated.score1.contains("*")) {
+                                updated = updated.copy(score1 = updated.score1 + " *")
+                            }
+                            if (otherMatch.score2.contains("*") && !updated.score2.contains("*")) {
+                                updated = updated.copy(score2 = updated.score2 + " *")
+                            }
+                            if ((updated.matchTiming == "Match Update" || updated.matchTiming == "In Progress") && 
+                                otherMatch.matchTiming != "Match Update" && otherMatch.matchTiming != "In Progress" && otherMatch.matchTiming.isNotBlank()) {
+                                updated = updated.copy(matchTiming = otherMatch.matchTiming)
+                            }
+                            if (updated.seriesName == "Cricket Series" && otherMatch.seriesName != "Cricket Series" && otherMatch.seriesName.isNotBlank()) {
+                                updated = updated.copy(seriesName = otherMatch.seriesName)
+                            }
+                            if (updated.notablePerformances.isBlank() && otherMatch.notablePerformances.isNotBlank()) {
+                                updated = updated.copy(notablePerformances = otherMatch.notablePerformances)
+                            }
+                            dedupedMap[match.id] = updated
                         }
                     }
                 }
@@ -169,19 +176,43 @@ class CricketRepository(private val context: android.content.Context) {
     private fun getStatusPriority(match: Match): Int {
         return when (match.matchState) {
             "LIVE" -> 3
-            "COMPLETE" -> 2
+            "COMPLETED" -> 2
             else -> 1
         }
     }
 
     companion object {
-        fun mapTitleToMatch(
-            rawTitle: String, 
-            link: String = "", 
-            liveStats: String = "",
-            rawSeries: String = "",
-            rawTiming: String = ""
-        ): Match {
+        fun mapItemToMatch(item: com.example.api.RssItem): Match {
+            if (item.source == "CRICBUZZ") {
+                val t1 = item.team1.trim()
+                val t2 = item.team2.trim()
+                val sortedTeams = listOf(t1, t2).sorted()
+                val id = (sortedTeams[0] + sortedTeams[1]).hashCode().toString()
+                
+                return Match(
+                    id = id,
+                    team1 = t1,
+                    team2 = t2,
+                    score1 = item.score1,
+                    score2 = item.score2,
+                    overs1 = item.overs1,
+                    overs2 = item.overs2,
+                    status = item.matchStatus,
+                    seriesName = item.seriesName.ifBlank { "Cricket Series" },
+                    matchTiming = item.matchTiming,
+                    matchUrl = item.link,
+                    notablePerformances = item.rawLiveStats,
+                    rawState = item.rawState
+                )
+            }
+            
+            val rawTitle = item.title
+            val link = item.link
+            val liveStats = item.rawLiveStats
+            val rawSeries = item.seriesName
+            val rawTiming = item.matchTiming
+            val rawState = item.rawState
+            
             val title = rawTitle.replace("via rss", "", ignoreCase = true).trim()
             
             var team1Full = title
@@ -220,7 +251,8 @@ class CricketRepository(private val context: android.content.Context) {
 
             val (t1Name, t1Score, t1Overs) = extractNameAndScore(team1Full)
             val (t2Name, t2Score, t2Overs) = extractNameAndScore(team2Full)
-            val id = (t1Name + t2Name).hashCode().toString()
+            val sortedTeams = listOf(t1Name, t2Name).sorted()
+            val id = (sortedTeams[0] + sortedTeams[1]).hashCode().toString()
 
             val derivedSeries = if (rawSeries.isNotBlank()) rawSeries else {
                 val combinedText = "$title $status"
@@ -263,7 +295,8 @@ class CricketRepository(private val context: android.content.Context) {
                 matchTiming = derivedTiming,
                 liveCommentary = emptyList(),
                 matchUrl = link.replace("http://", "https://"),
-                notablePerformances = liveStats
+                notablePerformances = liveStats,
+                rawState = rawState
             )
         }
 
@@ -279,8 +312,12 @@ class CricketRepository(private val context: android.content.Context) {
             val overMatch = overRegex.find(strToProcess)
             if (overMatch != null) {
                 val parsedOvers = overMatch.groupValues[1].trim()
-                overs = if (parsedOvers.isNotEmpty()) "($parsedOvers)" else ""
-                strToProcess = strToProcess.substring(0, overMatch.range.first).trim()
+                if (parsedOvers.contains("Women", ignoreCase = true) || parsedOvers.contains("Men", ignoreCase = true)) {
+                    // Part of the team name
+                } else {
+                    overs = if (parsedOvers.isNotEmpty()) "($parsedOvers)" else ""
+                    strToProcess = strToProcess.substring(0, overMatch.range.first).trim()
+                }
             }
             
             val scoreRegex = Regex("""(\d+(?:/\d+)?(?:\s*(?:d|\*))?)$""")

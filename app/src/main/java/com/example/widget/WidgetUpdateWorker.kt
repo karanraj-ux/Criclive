@@ -29,13 +29,14 @@ class WidgetUpdateWorker(
             return Result.success()
         }
 
+
         try {
             val onboardingManager = com.example.data.OnboardingManager(applicationContext)
             val preferredTeams = onboardingManager.preferredTeams.first()
             val pinnedMatchId = onboardingManager.widgetPinnedMatchId.first()
             
             val rawItems = RssParser.fetchLiveMatches()
-            val parsedMatches = rawItems.map { com.example.data.CricketRepository.mapTitleToMatch(it.title, it.link, it.rawLiveStats, it.seriesName, it.matchTiming) }
+            val parsedMatches = rawItems.map { com.example.data.CricketRepository.mapItemToMatch(it) }
             
             val preferredMatch = if (pinnedMatchId.isNotEmpty()) {
                 parsedMatches.firstOrNull { it.id == pinnedMatchId }
@@ -44,6 +45,14 @@ class WidgetUpdateWorker(
                     preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) } && match.matchState == "LIVE"
                 } ?: parsedMatches.firstOrNull { it.matchState == "LIVE" }
                   ?: parsedMatches.firstOrNull()
+            }
+
+            if (preferredMatch != null && pinnedMatchId.isNotEmpty() && preferredMatch.id == pinnedMatchId) {
+                onboardingManager.saveWidgetPinnedMatchDetails(
+                    preferredMatch.team1, preferredMatch.score1, preferredMatch.overs1,
+                    preferredMatch.team2, preferredMatch.score2, preferredMatch.overs2,
+                    preferredMatch.matchState
+                )
             }
 
             for (appWidgetId in appWidgetIds) {
@@ -64,8 +73,41 @@ class WidgetUpdateWorker(
                     views.setTextViewText(R.id.widget_overs2, preferredMatch.overs2.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it })
                     
                     views.setTextViewText(R.id.widget_status, displayStatus)
+                } else if (pinnedMatchId.isNotEmpty()) {
+                    intent.putExtra("MATCH_ID", pinnedMatchId)
+                    val t1 = onboardingManager.widgetPinnedTeam1.first()
+                    val s1 = onboardingManager.widgetPinnedScore1.first()
+                    val o1 = onboardingManager.widgetPinnedOvers1.first()
+                    val t2 = onboardingManager.widgetPinnedTeam2.first()
+                    val s2 = onboardingManager.widgetPinnedScore2.first()
+                    val o2 = onboardingManager.widgetPinnedOvers2.first()
+                    val st = onboardingManager.widgetPinnedStatus.first()
+
+                    if (t1.isNotEmpty() || t2.isNotEmpty()) {
+                        views.setTextViewText(R.id.widget_team1, t1.take(3).uppercase())
+                        views.setTextViewText(R.id.widget_score1, s1.ifEmpty { "0/0" })
+                        views.setTextViewText(R.id.widget_overs1, o1.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it })
+                        
+                        views.setTextViewText(R.id.widget_team2, t2.take(3).uppercase())
+                        views.setTextViewText(R.id.widget_score2, s2.ifEmpty { "0/0" })
+                        views.setTextViewText(R.id.widget_overs2, o2.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it })
+                        
+                        views.setTextViewText(R.id.widget_status, st)
+                    } else {
+                        views.setTextViewText(R.id.widget_status, "NOT FOUND")
+                        views.setTextViewText(R.id.widget_team1, "--")
+                        views.setTextViewText(R.id.widget_score1, "-")
+                        views.setTextViewText(R.id.widget_overs1, "")
+                        views.setTextViewText(R.id.widget_team2, "--")
+                        views.setTextViewText(R.id.widget_score2, "-")
+                        views.setTextViewText(R.id.widget_overs2, "")
+                    }
                 } else {
-                    views.setTextViewText(R.id.widget_status, if (pinnedMatchId.isNotEmpty()) "NOT FOUND" else "NO LIVE MATCHES")
+                    if (rawItems.isEmpty()) {
+                        // Keep previous state if network fails
+                        continue
+                    }
+                    views.setTextViewText(R.id.widget_status, "NO LIVE MATCHES")
                     views.setTextViewText(R.id.widget_team1, "--")
                     views.setTextViewText(R.id.widget_score1, "-")
                     views.setTextViewText(R.id.widget_overs1, "")
@@ -73,8 +115,6 @@ class WidgetUpdateWorker(
                     views.setTextViewText(R.id.widget_score2, "-")
                     views.setTextViewText(R.id.widget_overs2, "")
                 }
-
-                
                 val pendingIntent = PendingIntent.getActivity(applicationContext, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
@@ -92,17 +132,8 @@ class WidgetUpdateWorker(
             }
             return Result.success()
         } catch (e: Exception) {
-            for (appWidgetId in appWidgetIds) {
-                val views = RemoteViews(applicationContext.packageName, R.layout.widget_layout)
-                views.setTextViewText(R.id.widget_status, "ERROR")
-                views.setTextViewText(R.id.widget_team1, "--")
-                views.setTextViewText(R.id.widget_score1, "-")
-                views.setTextViewText(R.id.widget_overs1, "")
-                views.setTextViewText(R.id.widget_team2, "--")
-                views.setTextViewText(R.id.widget_score2, "-")
-                views.setTextViewText(R.id.widget_overs2, "")
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            }
+            // Do not clear the widget on exception to prevent flashing
+            // Just return retry so WorkManager can try again later
             return Result.retry()
         }
     }

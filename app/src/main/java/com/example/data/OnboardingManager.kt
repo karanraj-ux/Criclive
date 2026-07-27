@@ -26,6 +26,13 @@ class OnboardingManager(private val context: Context) {
         val APP_MODE = stringPreferencesKey("app_mode")
         val FUNDING_DISMISSED = booleanPreferencesKey("funding_dismissed")
         val WIDGET_PINNED_MATCH_ID = stringPreferencesKey("widget_pinned_match_id")
+        val WIDGET_PINNED_TEAM1 = stringPreferencesKey("widget_pinned_team1")
+        val WIDGET_PINNED_SCORE1 = stringPreferencesKey("widget_pinned_score1")
+        val WIDGET_PINNED_OVERS1 = stringPreferencesKey("widget_pinned_overs1")
+        val WIDGET_PINNED_TEAM2 = stringPreferencesKey("widget_pinned_team2")
+        val WIDGET_PINNED_SCORE2 = stringPreferencesKey("widget_pinned_score2")
+        val WIDGET_PINNED_OVERS2 = stringPreferencesKey("widget_pinned_overs2")
+        val WIDGET_PINNED_STATUS = stringPreferencesKey("widget_pinned_status")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -62,6 +69,14 @@ class OnboardingManager(private val context: Context) {
     val widgetPinnedMatchId: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[WIDGET_PINNED_MATCH_ID] ?: ""
     }
+
+    val widgetPinnedStatus: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_STATUS] ?: "" }
+    val widgetPinnedTeam1: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_TEAM1] ?: "" }
+    val widgetPinnedScore1: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_SCORE1] ?: "" }
+    val widgetPinnedOvers1: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_OVERS1] ?: "" }
+    val widgetPinnedTeam2: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_TEAM2] ?: "" }
+    val widgetPinnedScore2: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_SCORE2] ?: "" }
+    val widgetPinnedOvers2: Flow<String> = context.dataStore.data.map { preferences -> preferences[WIDGET_PINNED_OVERS2] ?: "" }
 
     suspend fun saveOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { preferences ->
@@ -114,6 +129,22 @@ class OnboardingManager(private val context: Context) {
     suspend fun saveWidgetPinnedMatchId(matchId: String) {
         context.dataStore.edit { preferences ->
             preferences[WIDGET_PINNED_MATCH_ID] = matchId
+        }
+    }
+
+    suspend fun saveWidgetPinnedMatchDetails(
+        team1: String, score1: String, overs1: String,
+        team2: String, score2: String, overs2: String,
+        status: String
+    ) {
+        context.dataStore.edit { preferences ->
+            preferences[WIDGET_PINNED_TEAM1] = team1
+            preferences[WIDGET_PINNED_SCORE1] = score1
+            preferences[WIDGET_PINNED_OVERS1] = overs1
+            preferences[WIDGET_PINNED_TEAM2] = team2
+            preferences[WIDGET_PINNED_SCORE2] = score2
+            preferences[WIDGET_PINNED_OVERS2] = overs2
+            preferences[WIDGET_PINNED_STATUS] = status
         }
     }
 }
