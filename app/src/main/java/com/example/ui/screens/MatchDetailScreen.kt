@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Feed
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -43,6 +44,7 @@ fun MatchDetailScreen(
     isPreferred: Boolean,
     pipHintShown: Boolean,
     pinnedMatchId: String,
+    playerNews: String?,
     onDismissPipHint: () -> Unit,
     onBack: () -> Unit,
     onEnterPip: () -> Unit,
@@ -115,6 +117,34 @@ fun MatchDetailScreen(
                         }
                     }
                 }
+            }
+            
+            if (!playerNews.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Feed,
+                            contentDescription = "News",
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Related News & Updates", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha=0.8f))
+                            Spacer(Modifier.height(4.dp))
+                            Text(playerNews, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

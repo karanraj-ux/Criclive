@@ -282,4 +282,45 @@ object RssParser {
             titles.add(finalTitle)
         }
     }
+
+    suspend fun fetchPlayerNews(playerName: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val query = if (playerName.isNotBlank()) "$playerName cricket" else "cricket match updates"
+            val encodedName = java.net.URLEncoder.encode(query, "UTF-8")
+            val url = "https://news.google.com/rss/search?q=$encodedName&hl=en-IN&gl=IN&ceid=IN:en"
+            
+            val response = RetrofitClient.cricketService.getRssFeed(url)
+            val xmlString = response.string()
+            
+            val factory = org.xmlpull.v1.XmlPullParserFactory.newInstance()
+            factory.isNamespaceAware = true
+            val parser = factory.newPullParser()
+            parser.setInput(java.io.StringReader(xmlString))
+
+            var eventType = parser.eventType
+            var inItem = false
+
+            while (eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                val tagName = parser.name
+                when (eventType) {
+                    org.xmlpull.v1.XmlPullParser.START_TAG -> {
+                        if (tagName.equals("item", ignoreCase = true)) {
+                            inItem = true
+                        } else if (inItem && tagName.equals("title", ignoreCase = true)) {
+                            return@withContext parser.nextText()
+                        }
+                    }
+                    org.xmlpull.v1.XmlPullParser.END_TAG -> {
+                        if (tagName.equals("item", ignoreCase = true)) {
+                            inItem = false
+                        }
+                    }
+                }
+                eventType = parser.next()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RssParser", "Error fetching news for player: $playerName", e)
+        }
+        null
+    }
 }

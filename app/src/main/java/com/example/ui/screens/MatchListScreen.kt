@@ -45,7 +45,8 @@ fun MatchListScreen(
     onRefresh: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onFanModeClick: () -> Unit
+    onFanModeClick: () -> Unit,
+    onToggleMode: () -> Unit
 ) {
     val tabs = listOf("All Matches", "My Teams")
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -90,18 +91,30 @@ fun MatchListScreen(
                     IconButton(onClick = { showModeTooltip = true }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Info, contentDescription = "Mode Info", tint = Color(0xFF6B7280))
                     }
-                    TextButton(
-                        onClick = onFanModeClick,
+                    Spacer(modifier = Modifier.width(4.dp))
+                    
+                    // Mode Toggle Switch
+                    Box(
                         modifier = Modifier
-                            .padding(end = 4.dp)
+                            .clip(RoundedCornerShape(16.dp))
                             .background(
-                                Brush.horizontalGradient(listOf(Color(0xFFFF007A), Color(0xFF7A00FF))),
-                                shape = RoundedCornerShape(16.dp)
+                                if (state.appMode == "Fan Mode") 
+                                    Brush.horizontalGradient(listOf(Color(0xFFFF007A), Color(0xFF7A00FF)))
+                                else 
+                                    Brush.horizontalGradient(listOf(Color(0xFFE5E7EB), Color(0xFFD1D5DB)))
                             )
-                            .height(32.dp)
+                            .clickable { onToggleMode() }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Text("Fan Mode", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(
+                            text = if (state.appMode == "Fan Mode") "Fan Mode" else "Standard", 
+                            color = if (state.appMode == "Fan Mode") Color.White else Color(0xFF374151), 
+                            fontWeight = FontWeight.Bold, 
+                            fontSize = 12.sp
+                        )
                     }
+                    
+                    Spacer(modifier = Modifier.width(4.dp))
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF111827))
                     }
@@ -169,42 +182,11 @@ fun MatchListScreen(
             )
 
             var showWidgetBanner by remember { mutableStateOf(true) }
-            var showLiveWarningBanner by remember { mutableStateOf(true) }
-            
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (showLiveWarningBanner) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier.size(40.dp).background(Color(0xFFF59E0B), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.White)
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text("Best for Live Matches", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                                    Text("This app is optimized for live matches relying on Cricbuzz data. Past matches may have limited details.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFB45309))
-                                }
-                                IconButton(onClick = { showLiveWarningBanner = false }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = Color(0xFF92400E))
-                                }
-                            }
-                        }
-                    }
-                }
                 if (showWidgetBanner) {
                     item {
                         Card(
@@ -238,6 +220,8 @@ fun MatchListScreen(
                     item {
                         IdolHeader(state.idolName, state.wallpaperUri, onClick = onFanModeClick)
                     }
+                    
+
                     
                     item {
                         Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {

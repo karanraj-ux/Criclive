@@ -58,6 +58,8 @@ fun CricketApp(
     val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState(initial = false)
     val pipHintShown by viewModel.pipHintShown.collectAsState(initial = false)
     val fundingDismissed by viewModel.fundingDismissed.collectAsState(initial = false)
+    val appOpensCount by viewModel.appOpensCount.collectAsState(initial = 0)
+    val feedbackDismissed by viewModel.feedbackDismissed.collectAsState(initial = false)
     val suggestedPlayers by viewModel.suggestedPlayers.collectAsState()
 
     var showSettings by remember { mutableStateOf(false) }
@@ -66,10 +68,49 @@ fun CricketApp(
     var appUpdate by remember { mutableStateOf<AppUpdate?>(null) }
 
     LaunchedEffect(Unit) {
+        viewModel.incrementAppOpens()
         // Checking for a real update from GitHub Releases
         val update = UpdateManager.checkForUpdate()
         if (update != null && update.isUpdateAvailable && update.version != BuildConfig.VERSION_NAME) {
             appUpdate = update
+        }
+    }
+
+    // Feedback Dialog Logic
+    if (appOpensCount >= 2 && !feedbackDismissed && !isPipMode) {
+        var showFeedbackDialog by remember { mutableStateOf(true) }
+        if (showFeedbackDialog) {
+            AlertDialog(
+                onDismissRequest = { 
+                    showFeedbackDialog = false 
+                    viewModel.dismissFeedback()
+                },
+                title = { Text("Next Phase Plan: Local Scorer", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Are you enjoying CricLive? We are planning to add a manual easy scorer for local tournaments (like gully cricket) with sharing options.", fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(8.dp))
+                        Text("Would you find this feature useful?", style = MaterialTheme.typography.bodySmall)
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { 
+                        showFeedbackDialog = false
+                        viewModel.dismissFeedback()
+                        // Optional: trigger some analytics or open play store if positive
+                    }) {
+                        Text("Yes, I'd love it!")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { 
+                        showFeedbackDialog = false
+                        viewModel.dismissFeedback()
+                    }) {
+                        Text("No, keep it simple")
+                    }
+                }
+            )
         }
     }
 
@@ -103,7 +144,7 @@ fun CricketApp(
     }
 
     if (!isOnboardingCompleted || forceOnboarding) {
-        val initialMode = if (uiState is CricketUiState.Success) (uiState as CricketUiState.Success).appMode else "Standard"
+        val initialMode = if (uiState is CricketUiState.Success) (uiState as CricketUiState.Success).appMode else "Fan Mode"
         OnboardingScreen(
             onComplete = { teams, players, mode ->
                 viewModel.updateAppMode(mode)
@@ -146,14 +187,13 @@ fun CricketApp(
                                 isPreferred = state.preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) },
                                 pipHintShown = pipHintShown,
                                 pinnedMatchId = state.pinnedMatchId,
+                                playerNews = state.playerNews,
                                 onDismissPipHint = { viewModel.setPipHintShown(true) },
                                 onBack = { viewModel.selectMatch(null) },
                                 onEnterPip = onEnterPip,
                                 onPinToWidget = {
                                     val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
-                                    viewModel.pinMatchToWidget(newPinnedId)
-                                    val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
-                                    WorkManager.getInstance(context).enqueue(workRequest)
+                                    viewModel.pinMatchToWidget(newPinnedId, match, context)
                                 }
                             )
                         }
@@ -166,14 +206,13 @@ fun CricketApp(
                         onMatchClick = { viewModel.selectMatch(it.id) },
                         onPinClick = { match -> 
                             val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
-                            viewModel.pinMatchToWidget(newPinnedId)
-                            val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
-                            WorkManager.getInstance(context).enqueue(workRequest)
+                            viewModel.pinMatchToWidget(newPinnedId, match, context)
                         },
                         onRefresh = { viewModel.refresh() },
                         onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                         onSettingsClick = { showSettings = true },
-                        onFanModeClick = { showFanModeDialog = true }
+                        onFanModeClick = { showFanModeDialog = true },
+                        onToggleMode = { viewModel.updateAppMode(if (state.appMode == "Fan Mode") "Standard" else "Fan Mode") }
                     )
                 }
                 

@@ -25,6 +25,8 @@ class OnboardingManager(private val context: Context) {
         val WALLPAPER_URI = stringPreferencesKey("wallpaper_uri")
         val APP_MODE = stringPreferencesKey("app_mode")
         val FUNDING_DISMISSED = booleanPreferencesKey("funding_dismissed")
+        val APP_OPENS_COUNT = intPreferencesKey("app_opens_count")
+        val FEEDBACK_DISMISSED = booleanPreferencesKey("feedback_dismissed")
         val WIDGET_PINNED_MATCH_ID = stringPreferencesKey("widget_pinned_match_id")
         val WIDGET_PINNED_TEAM1 = stringPreferencesKey("widget_pinned_team1")
         val WIDGET_PINNED_SCORE1 = stringPreferencesKey("widget_pinned_score1")
@@ -58,11 +60,17 @@ class OnboardingManager(private val context: Context) {
         preferences[WALLPAPER_URI] ?: ""
     }
     val appMode: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[APP_MODE] ?: "Standard"
+        preferences[APP_MODE] ?: "Fan Mode"
     }
 
     val fundingDismissed: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[FUNDING_DISMISSED] ?: false
+    }
+    val appOpensCount: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[APP_OPENS_COUNT] ?: 0
+    }
+    val feedbackDismissed: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[FEEDBACK_DISMISSED] ?: false
     }
 
 
@@ -123,6 +131,19 @@ class OnboardingManager(private val context: Context) {
     suspend fun saveFundingDismissed(dismissed: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[FUNDING_DISMISSED] = dismissed
+        }
+    }
+    
+    suspend fun incrementAppOpens() {
+        context.dataStore.edit { preferences ->
+            val current = preferences[APP_OPENS_COUNT] ?: 0
+            preferences[APP_OPENS_COUNT] = current + 1
+        }
+    }
+
+    suspend fun saveFeedbackDismissed(dismissed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[FEEDBACK_DISMISSED] = dismissed
         }
     }
 

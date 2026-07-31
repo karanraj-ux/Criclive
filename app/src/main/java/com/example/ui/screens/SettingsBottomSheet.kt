@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,6 +50,7 @@ fun SettingsBottomSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         var idolName by remember { mutableStateOf(state.idolName) }
+        var showFaq by remember { mutableStateOf(false) }
         var appMode by remember { mutableStateOf(state.appMode) }
         
         val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -84,7 +86,7 @@ fun SettingsBottomSheet(
                 OutlinedTextField(
                     value = idolName,
                     onValueChange = { idolName = it; onSaveIdol(it) },
-                    label = { Text("Idol Name (e.g., Virat Kohli)") },
+                    label = { Text("Custom Tracking Player (e.g., Virat Kohli)") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -110,10 +112,60 @@ fun SettingsBottomSheet(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
+            
+            OutlinedButton(
+                onClick = { showFaq = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Info, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("App FAQ & Limitations", fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { /* Open Play Store or similar */ },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD97706)),
+                border = BorderStroke(1.dp, Color(0xFFD97706)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Star, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Rate App / Give Feedback", fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
             Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
                 Text("Close", fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(32.dp))
+        }
+        
+        if (showFaq) {
+            AlertDialog(
+                onDismissRequest = { showFaq = false },
+                title = { Text("App FAQ & Limitations", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Text("Q: Why does the widget sometimes not update instantly?", fontWeight = FontWeight.Bold)
+                        Text("A: To save battery, Android restricts how often widgets can fetch data in the background (usually every 15 mins). However, when you 'Pin' a match, we use an atomic cache to show it instantly, and a background worker will periodically refresh it.", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text("Q: Where do the scores come from?", fontWeight = FontWeight.Bold)
+                        Text("A: We parse public RSS feeds. This means the data is free but might be slightly delayed compared to live TV. It focuses mainly on live matches.", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text("Q: How does Custom Player/Fan Mode work?", fontWeight = FontWeight.Bold)
+                        Text("A: Fan mode scans recent news articles related to your chosen player to fetch updates. It may not always provide real-time stats if they aren't covered in recent news.", style = MaterialTheme.typography.bodySmall)
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showFaq = false }) {
+                        Text("I Understand")
+                    }
+                }
+            )
         }
     }
 }

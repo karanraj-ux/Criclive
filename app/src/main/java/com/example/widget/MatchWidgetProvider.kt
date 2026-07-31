@@ -9,6 +9,6 @@ import androidx.work.WorkManager
 class MatchWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         val workRequest = OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
-        WorkManager.getInstance(context).enqueue(workRequest)
+        WorkManager.getInstance(context).enqueueUniqueWork("WidgetUpdate", androidx.work.ExistingWorkPolicy.REPLACE, workRequest)
     }
 }

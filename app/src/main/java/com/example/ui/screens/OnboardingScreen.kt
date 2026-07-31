@@ -215,6 +215,7 @@ fun OnboardingScreen(
             }
         } else if (step == 3) {
             var playerSearchQuery by remember { mutableStateOf("") }
+            var customPlayerInput by remember { mutableStateOf("") }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { step = 2 }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -249,6 +250,40 @@ fun OnboardingScreen(
                     unfocusedTextColor = Color(0xFF111827)
                 )
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = customPlayerInput,
+                    onValueChange = { customPlayerInput = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Add custom player...", color = Color(0xFF6B7280)) },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFF3F4F6),
+                        unfocusedContainerColor = Color(0xFFF3F4F6),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedTextColor = Color(0xFF111827),
+                        unfocusedTextColor = Color(0xFF111827)
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        val newPlayer = customPlayerInput.trim()
+                        if (newPlayer.isNotBlank() && !selectedPlayers.contains(newPlayer)) {
+                            selectedPlayers.add(newPlayer)
+                        }
+                        customPlayerInput = ""
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Text("Add", fontWeight = FontWeight.Bold)
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             
             if (suggestedPlayers.isEmpty()) {
@@ -270,6 +305,7 @@ fun OnboardingScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+
                     items(finalList, key = { it }) { player ->
                         val isSelected = selectedPlayers.contains(player)
                         val isTop = globalTopPlayers.contains(player) && !isSelected

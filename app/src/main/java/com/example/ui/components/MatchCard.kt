@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
@@ -241,9 +242,29 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                     }
                 }
             }
+            
+
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+            OutlinedButton(
+                onClick = {
+                    val query = java.net.URLEncoder.encode("${match.team1} vs ${match.team2}", "UTF-8")
+                    uriHandler.openUri("https://www.cricbuzz.com/search?q=$query")
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            ) {
+                Text("View Details on Cricbuzz", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open in Cricbuzz", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }
+
+
 
 
 fun getFlagUrl(teamName: String): String? {
