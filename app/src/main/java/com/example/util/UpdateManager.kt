@@ -100,3 +100,13 @@ object UpdateManager {
         }
     }
 }
+
+fun String.toAbbreviation(): String {
+    if (this.isBlank()) return "--"
+    val words = this.trim().split(Regex("\\s+"))
+    return if (words.size > 1) {
+        words.mapNotNull { it.firstOrNull() }.joinToString("").take(3).uppercase()
+    } else {
+        this.take(3).uppercase()
+    }
+}

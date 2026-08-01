@@ -43,7 +43,7 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
             val flagUrl = getFlagUrl(teamName)
             if (flagUrl != null) {
                 AsyncImage(

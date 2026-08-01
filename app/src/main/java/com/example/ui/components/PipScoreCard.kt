@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.model.Match
+import com.example.util.toAbbreviation
 import com.example.viewmodel.CricketUiState
 import com.example.viewmodel.CricketViewModel
 import kotlin.math.abs
@@ -57,7 +58,7 @@ fun PipScoreCard(match: Match) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = match.team1.take(3).uppercase(),
+                    text = match.team1.toAbbreviation(),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
                     color = Color(0xFF111827),
@@ -95,7 +96,7 @@ fun PipScoreCard(match: Match) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = match.team2.take(3).uppercase(),
+                    text = match.team2.toAbbreviation(),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
                     color = Color(0xFF111827),

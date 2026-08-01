@@ -7,6 +7,7 @@ import com.example.data.OnboardingManager
 import com.example.data.CricketRepository
 import com.example.data.FetchResult
 import com.example.model.Match
+import com.example.util.toAbbreviation
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -196,9 +197,24 @@ val uiState: StateFlow<CricketUiState> = combine(
         }
     }
     
-    fun updateWallpaperUri(uri: String) {
-        viewModelScope.launch {
-            onboardingManager.saveWallpaperUri(uri)
+    fun updateWallpaperUri(uri: String, context: android.content.Context) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                if (uri.startsWith("content://")) {
+                    val input = context.contentResolver.openInputStream(android.net.Uri.parse(uri))
+                    val file = java.io.File(context.filesDir, "custom_wallpaper.jpg")
+                    val output = java.io.FileOutputStream(file)
+                    input?.copyTo(output)
+                    input?.close()
+                    output.close()
+                    onboardingManager.saveWallpaperUri(file.absolutePath)
+                } else {
+                    onboardingManager.saveWallpaperUri(uri)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onboardingManager.saveWallpaperUri(uri)
+            }
         }
     }
 
@@ -248,70 +264,8 @@ val uiState: StateFlow<CricketUiState> = combine(
                     match.team2, match.score2, match.overs2,
                     match.matchState
                 )
-                
-                val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(context)
-                val componentName = android.content.ComponentName(context, com.example.widget.MatchWidgetProvider::class.java)
-                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-                for (appWidgetId in appWidgetIds) {
-                    val views = android.widget.RemoteViews(context.packageName, com.example.R.layout.widget_layout)
-                    val intent = android.content.Intent(context, com.example.MainActivity::class.java)
-                    intent.putExtra("MATCH_ID", matchId)
-                    
-                    views.setTextViewText(com.example.R.id.widget_team1, if (match.team1.isNotEmpty()) match.team1.take(3).uppercase() else "--")
-                    views.setTextViewText(com.example.R.id.widget_score1, match.score1.ifEmpty { if (match.team1.isNotEmpty()) "0/0" else "-" })
-                    views.setTextViewText(com.example.R.id.widget_overs1, match.overs1.ifEmpty { if (match.team1.isNotEmpty()) "(0.0)" else "" }.let { if (it.isNotEmpty() && !it.startsWith("(")) "($it)" else it })
-                    
-                    views.setTextViewText(com.example.R.id.widget_team2, if (match.team2.isNotEmpty()) match.team2.take(3).uppercase() else "--")
-                    views.setTextViewText(com.example.R.id.widget_score2, match.score2.ifEmpty { if (match.team2.isNotEmpty()) "0/0" else "-" })
-                    views.setTextViewText(com.example.R.id.widget_overs2, match.overs2.ifEmpty { if (match.team2.isNotEmpty()) "(0.0)" else "" }.let { if (it.isNotEmpty() && !it.startsWith("(")) "($it)" else it })
-                    
-                    views.setTextViewText(com.example.R.id.widget_status, match.matchState.ifEmpty { "NO LIVE MATCHES" })
-                    
-                    val pendingIntent = android.app.PendingIntent.getActivity(context, appWidgetId, intent, android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
-                    views.setOnClickPendingIntent(com.example.R.id.widget_root, pendingIntent)
-                    
-                    val refreshIntent = android.content.Intent(context, com.example.widget.MatchWidgetProvider::class.java).apply {
-                        action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                        putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
-                    }
-                    val refreshPendingIntent = android.app.PendingIntent.getBroadcast(
-                        context, appWidgetId, refreshIntent, 
-                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-                    )
-                    views.setOnClickPendingIntent(com.example.R.id.widget_refresh, refreshPendingIntent)
-                    
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-            } else if (matchId.isEmpty()) {
-                val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(context)
-                val componentName = android.content.ComponentName(context, com.example.widget.MatchWidgetProvider::class.java)
-                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-                for (appWidgetId in appWidgetIds) {
-                    val views = android.widget.RemoteViews(context.packageName, com.example.R.layout.widget_layout)
-                    val intent = android.content.Intent(context, com.example.MainActivity::class.java)
-                    views.setTextViewText(com.example.R.id.widget_team1, "--")
-                    views.setTextViewText(com.example.R.id.widget_score1, "-")
-                    views.setTextViewText(com.example.R.id.widget_overs1, "")
-                    views.setTextViewText(com.example.R.id.widget_team2, "--")
-                    views.setTextViewText(com.example.R.id.widget_score2, "-")
-                    views.setTextViewText(com.example.R.id.widget_overs2, "")
-                    views.setTextViewText(com.example.R.id.widget_status, "LOADING...")
-                    
-                    val pendingIntent = android.app.PendingIntent.getActivity(context, appWidgetId, intent, android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
-                    views.setOnClickPendingIntent(com.example.R.id.widget_root, pendingIntent)
-                    
-                    val refreshIntent = android.content.Intent(context, com.example.widget.MatchWidgetProvider::class.java).apply {
-                        action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                        putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
-                    }
-                    val refreshPendingIntent = android.app.PendingIntent.getBroadcast(
-                        context, appWidgetId, refreshIntent, 
-                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-                    )
-                    views.setOnClickPendingIntent(com.example.R.id.widget_refresh, refreshPendingIntent)
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
             }
+            
             val workRequest = androidx.work.OneTimeWorkRequestBuilder<com.example.widget.WidgetUpdateWorker>().build()
             androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("WidgetUpdate", androidx.work.ExistingWorkPolicy.REPLACE, workRequest)
         }

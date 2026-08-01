@@ -249,8 +249,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
             val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
             OutlinedButton(
                 onClick = {
-                    val query = java.net.URLEncoder.encode("${match.team1} vs ${match.team2}", "UTF-8")
-                    uriHandler.openUri("https://www.cricbuzz.com/search?q=$query")
+                    uriHandler.openUri("https://www.cricbuzz.com/")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -269,45 +268,30 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
 
 fun getFlagUrl(teamName: String): String? {
     val lowerName = teamName.lowercase()
+    val words = lowerName.split(" ", "(", ")", "-").filter { it.isNotBlank() }
     
-    // Franchise mappings (can use external images if we had them, returning null falls back to colored initials)
-    if (lowerName.contains("super kings") || lowerName.contains("csk")) return "https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/100px-Chennai_Super_Kings_Logo.svg.png"
-    if (lowerName.contains("mumbai indians") || lowerName.contains("mi")) return "https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/100px-Mumbai_Indians_Logo.svg.png"
-    if (lowerName.contains("royal challengers") || lowerName.contains("rcb")) return "https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bengaluru_Logo.svg/100px-Royal_Challengers_Bengaluru_Logo.svg.png"
+    if (words.contains("csk") || lowerName.contains("super kings")) return "https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/100px-Chennai_Super_Kings_Logo.svg.png"
+    if (words.contains("mi") || lowerName.contains("mumbai indians")) return "https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/100px-Mumbai_Indians_Logo.svg.png"
+    if (words.contains("rcb") || lowerName.contains("royal challengers")) return "https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bengaluru_Logo.svg/100px-Royal_Challengers_Bengaluru_Logo.svg.png"
     
-    // Country mappings
     val map = mapOf(
-        "india" to "in",
-        "australia" to "au",
-        "england" to "gb-eng",
-        "pakistan" to "pk",
-        "south africa" to "za",
-        "new zealand" to "nz",
-        "sri lanka" to "lk",
-        "bangladesh" to "bd",
-        "afghanistan" to "af",
-        "nepal" to "np",
-        "ireland" to "ie",
-        "zimbabwe" to "zw",
-        "netherlands" to "nl",
-        "scotland" to "gb-sct",
-        "usa" to "us",
-        "oman" to "om",
-        "uae" to "ae",
-        "namibia" to "na",
-        "uganda" to "ug",
-        "west indies" to "jm" // Using Jamaica as a representative Caribbean flag for display purposes if needed, or null to fallback
+        "india" to "in", "australia" to "au", "england" to "gb-eng", "pakistan" to "pk",
+        "south africa" to "za", "new zealand" to "nz", "sri lanka" to "lk", "bangladesh" to "bd",
+        "afghanistan" to "af", "nepal" to "np", "ireland" to "ie", "zimbabwe" to "zw",
+        "netherlands" to "nl", "scotland" to "gb-sct", "usa" to "us", "oman" to "om",
+        "uae" to "ae", "namibia" to "na", "uganda" to "ug", "west indies" to "jm"
     )
     
     for ((country, code) in map) {
-        if (lowerName.contains(country)) {
+        // match word boundaries or use the split words
+        val isMatch = words.any { it == country } || lowerName.matches(Regex(".*\\b$country\\b.*"))
+        if (isMatch) {
             return "https://flagcdn.com/w80/$code.png"
         }
     }
     return null
 }
 
-// Generate dynamic colors for team logos
 fun getTeamColor(teamName: String): Color {
     val colors = listOf(
         Color(0xFF3B82F6), Color(0xFFEF4444), Color(0xFF10B981), 

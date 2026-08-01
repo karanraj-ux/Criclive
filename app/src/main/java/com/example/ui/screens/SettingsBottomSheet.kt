@@ -51,6 +51,7 @@ fun SettingsBottomSheet(
     ModalBottomSheet(onDismissRequest = onDismiss) {
         var idolName by remember { mutableStateOf(state.idolName) }
         var showFaq by remember { mutableStateOf(false) }
+        var showAbout by remember { mutableStateOf(false) }
         var appMode by remember { mutableStateOf(state.appMode) }
         
         val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -123,6 +124,18 @@ fun SettingsBottomSheet(
                 Text("App FAQ & Limitations", fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { showAbout = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Code, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("About & Open Source", fontWeight = FontWeight.Bold)
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
             OutlinedButton(
                 onClick = { /* Open Play Store or similar */ },
                 modifier = Modifier.fillMaxWidth(),
@@ -142,6 +155,30 @@ fun SettingsBottomSheet(
             Spacer(modifier = Modifier.height(32.dp))
         }
         
+        if (showAbout) {
+            AlertDialog(
+                onDismissRequest = { showAbout = false },
+                title = { Text("About CricLive", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Text("Version 1.2 (F-Droid Ready)", fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("CricLive is a fully open-source, privacy-respecting cricket score app built for fans.", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Privacy Policy:", fontWeight = FontWeight.Bold)
+                        Text("We do NOT collect, store, or share any personal data. All data fetching is done directly from public RSS feeds to your device. Your favorite players and settings are stored locally on your device.", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("License: MIT License", style = MaterialTheme.typography.bodySmall)
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showAbout = false }) {
+                        Text("Close")
+                    }
+                }
+            )
+        }
+
         if (showFaq) {
             AlertDialog(
                 onDismissRequest = { showFaq = false },

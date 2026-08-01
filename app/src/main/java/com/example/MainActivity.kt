@@ -15,7 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.ui.CricketApp
-import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.CricLiveTheme
 import com.example.viewmodel.CricketViewModel
 
 class MainActivity : ComponentActivity() {
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             val isFirstLaunch by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle(initialValue = false)
             val pipHintShown by viewModel.pipHintShown.collectAsStateWithLifecycle(initialValue = false)
             
-            MyApplicationTheme(darkTheme = false) {
+            CricLiveTheme(darkTheme = false) {
                 CricketApp(
                     viewModel = viewModel,
                     isPipMode = isPipMode,

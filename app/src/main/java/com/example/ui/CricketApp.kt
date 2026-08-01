@@ -221,7 +221,7 @@ fun CricketApp(
                         state = state,
                         onDismiss = { showFanModeDialog = false },
                         onSaveIdol = { viewModel.updateIdolName(it) },
-                        onSaveWallpaper = { viewModel.updateWallpaperUri(it) },
+                        onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
                         onEnableFanMode = { viewModel.updateAppMode("Fan Mode") }
                     )
                 }
@@ -231,7 +231,7 @@ fun CricketApp(
                         state = state,
                         onDismiss = { showSettings = false },
                         onSaveIdol = { viewModel.updateIdolName(it) },
-                        onSaveWallpaper = { viewModel.updateWallpaperUri(it) },
+                        onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
                         onEditPreferences = { 
                             showSettings = false
                             forceOnboarding = true 

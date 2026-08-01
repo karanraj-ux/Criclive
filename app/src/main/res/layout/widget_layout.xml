@@ -14,6 +14,7 @@
         android:orientation="horizontal">
 
         <ImageView
+            android:id="@+id/widget_live_dot"
             android:layout_width="6dp"
             android:layout_height="6dp"
             android:background="#FF0000" />

@@ -263,9 +263,13 @@ object RssParser {
             val score1Str = if (t1Runs.isNotEmpty()) "$t1Runs/$t1Wickets" else ""
             val score2Str = if (t2Runs.isNotEmpty()) "$t2Runs/$t2Wickets" else ""
             
+            val matchId = matchInfo.optInt("matchId", 0)
+            val slug = "${team1Name.replace(" ", "-").lowercase()}-vs-${team2Name.replace(" ", "-").lowercase()}-${matchDesc.replace(" ", "-").lowercase()}-${seriesName.replace(" ", "-").lowercase()}"
+            val matchLink = "https://www.cricbuzz.com/"
+
             matches.add(RssItem(
                 title = finalTitle, 
-                link = cbUrl, 
+                link = matchLink, 
                 rawLiveStats = liveStatsStr, 
                 seriesName = seriesName, 
                 matchTiming = matchDesc,
