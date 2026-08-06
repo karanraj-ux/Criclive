@@ -1,0 +1,10 @@
+CricLive is a free, open-source Android application that provides live cricket scores, match updates, and news. 
+
+Features:
+- Real-time live scores and commentary
+- Upcoming match schedules and series information
+- Picture-in-Picture (PiP) mode for floating scores
+- Offline caching for recently viewed matches
+- Clean, Material 3 design without ads or trackers
+
+Perfect for cricket fans who want a fast, privacy-respecting, and lightweight app to follow their favorite teams.
