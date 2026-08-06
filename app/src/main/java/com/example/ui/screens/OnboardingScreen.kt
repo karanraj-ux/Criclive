@@ -59,22 +59,44 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp)
             .systemBarsPadding()
     ) {
+        // App branding at top
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 32.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.width(16.dp))
+            Text(
+                "CricLive",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
         if (step == 1) {
             Text(
                 text = "Choose Your Experience",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "How do you want to follow the game?",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF374151)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -82,16 +104,17 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { selectedMode = "Standard" },
-                colors = CardDefaults.cardColors(containerColor = if (selectedMode == "Standard") MaterialTheme.colorScheme.primaryContainer else Color(0xFFF3F4F6)),
-                border = BorderStroke(1.dp, if (selectedMode == "Standard") MaterialTheme.colorScheme.primary else Color(0xFFD1D5DB)),
-                shape = RoundedCornerShape(12.dp)
+                colors = CardDefaults.cardColors(containerColor = if (selectedMode == "Standard") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, if (selectedMode == "Standard") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = selectedMode == "Standard", onClick = { selectedMode = "Standard" })
                     Spacer(Modifier.width(8.dp))
                     Column {
-                        Text("Standard Mode", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = Color(0xFF111827))
-                        Text("Just the matches, clean and simple.", color = Color(0xFF374151), style = MaterialTheme.typography.bodyMedium)
+                        Text("Standard Mode", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                        Text("Just the matches, clean and simple.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -100,16 +123,17 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { selectedMode = "Fan Mode" },
-                colors = CardDefaults.cardColors(containerColor = if (selectedMode == "Fan Mode") MaterialTheme.colorScheme.primaryContainer else Color(0xFFF3F4F6)),
-                border = BorderStroke(1.dp, if (selectedMode == "Fan Mode") MaterialTheme.colorScheme.primary else Color(0xFFD1D5DB)),
-                shape = RoundedCornerShape(12.dp)
+                colors = CardDefaults.cardColors(containerColor = if (selectedMode == "Fan Mode") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, if (selectedMode == "Fan Mode") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = selectedMode == "Fan Mode", onClick = { selectedMode = "Fan Mode" })
                     Spacer(Modifier.width(8.dp))
                     Column {
-                        Text("Fan Mode", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = Color(0xFF111827))
-                        Text("Follow specific players, add your Idol wallpaper, and immerse yourself.", color = Color(0xFF374151), style = MaterialTheme.typography.bodyMedium)
+                        Text("Fan Mode", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                        Text("Follow specific players, add your Idol wallpaper, and immerse yourself.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -132,20 +156,20 @@ fun OnboardingScreen(
                     text = "Pick Your Teams",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Select teams for personalized 'My Teams' feed.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF374151)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
@@ -182,8 +206,9 @@ fun OnboardingScreen(
                             .clickable {
                                 if (isSelected) selectedTeams.remove(team) else selectedTeams.add(team)
                             },
-                        colors = CardDefaults.cardColors(containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color(0xFFF3F4F6)),
-                        border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB)),
+                        colors = CardDefaults.cardColors(containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -191,7 +216,7 @@ fun OnboardingScreen(
                                 text = team,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else Color(0xFF111827),
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.weight(1f)
                             )
                             if (isSelected) {
@@ -224,14 +249,14 @@ fun OnboardingScreen(
                     text = "Pick Favorite Players",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Track your favorite players across all matches.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF374151)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -239,15 +264,15 @@ fun OnboardingScreen(
                 value = playerSearchQuery,
                 onValueChange = { playerSearchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search players...", color = Color(0xFF6B7280)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF374151)) },
-                shape = RoundedCornerShape(12.dp),
+                placeholder = { Text("Search players...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedTextColor = Color(0xFF111827),
-                    unfocusedTextColor = Color(0xFF111827)
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -257,16 +282,16 @@ fun OnboardingScreen(
                     value = customPlayerInput,
                     onValueChange = { customPlayerInput = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Add custom player...", color = Color(0xFF6B7280)) },
-                    shape = RoundedCornerShape(12.dp),
+                    placeholder = { Text("Add custom player...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF3F4F6),
-                        unfocusedContainerColor = Color(0xFFF3F4F6),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedTextColor = Color(0xFF111827),
-                        unfocusedTextColor = Color(0xFF111827)
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                     )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -278,7 +303,7 @@ fun OnboardingScreen(
                         }
                         customPlayerInput = ""
                     },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(16.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     Text("Add", fontWeight = FontWeight.Bold)
@@ -315,8 +340,9 @@ fun OnboardingScreen(
                                 .clickable {
                                     if (isSelected) selectedPlayers.remove(player) else selectedPlayers.add(player)
                                 },
-                            colors = CardDefaults.cardColors(containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color(0xFFF3F4F6)),
-                            border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.secondary else Color(0xFFE5E7EB)),
+                            colors = CardDefaults.cardColors(containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                            border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -324,11 +350,11 @@ fun OnboardingScreen(
                                     text = player,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFF111827),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.weight(1f)
                                 )
                                 if (isTop) {
-                                    Icon(Icons.Default.Star, contentDescription = "Top Player", tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Default.Star, contentDescription = "Top Player", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                                     Spacer(Modifier.width(8.dp))
                                 }
                                 if (isSelected) {
@@ -358,13 +384,14 @@ fun OnboardingScreen(
                     text = "Did you know?",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))
             
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {

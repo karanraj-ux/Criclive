@@ -61,11 +61,11 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
     val isIndiaMatch = match.team1.contains("India", true) || match.team2.contains("India", true)
     
     val borderStroke = if (isIndiaMatch && isPreferred) {
-        BorderStroke(3.dp, Brush.horizontalGradient(listOf(Color(0xFFFF9933), Color(0xFF000080), Color(0xFF138808))))
+        BorderStroke(3.dp, Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
     } else if (isPreferred) {
         BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
     } else {
-        BorderStroke(1.dp, Color(0xFF6B7280)) // Even darker gray for standard border
+        BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant) // Even darker gray for standard border
     }
     
     Card(
@@ -73,7 +73,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         border = borderStroke
     ) {
@@ -109,8 +109,8 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                     if (onPinClick != null) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isPinned) MaterialTheme.colorScheme.primaryContainer else Color(0xFFF3F4F6),
-                            border = BorderStroke(1.dp, if (isPinned) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB)),
+                            color = if (isPinned) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, if (isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
                             modifier = Modifier
                                 .padding(end = 4.dp)
                                 .clickable { onPinClick() }
@@ -122,7 +122,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                                 Icon(
                                     imageVector = if (isPinned) Icons.Default.PushPin else Icons.Default.PushPin,
                                     contentDescription = "Pin to Widget",
-                                    tint = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else Color(0xFF4B5563),
+                                    tint = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -130,7 +130,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                                     text = if (isPinned) "Pinned" else "Pin",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else Color(0xFF4B5563)
+                                    color = if (isPinned) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -141,7 +141,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = "Pin Info",
-                                tint = Color(0xFF9CA3AF),
+                                tint = MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -149,14 +149,14 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                     // Status Badge
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = if (isLive) Color(0xFFFEE2E2) else Color(0xFFF3F4F6)
+                        color = if (isLive) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = match.matchState,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (isLive) Color(0xFFB91C1C) else Color(0xFF374151)
+                            color = if (isLive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -174,14 +174,14 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                     Icon(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = "Timing",
-                        tint = Color(0xFF6B7280),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = displayTiming,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF4B5563),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -192,13 +192,13 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
             Spacer(modifier = Modifier.height(12.dp))
             TeamScoreRow(teamName = match.team2, score = match.score2, overs = match.overs2)
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFE5E7EB))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 text = match.status,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isLive) MaterialTheme.colorScheme.primary else Color(0xFF1F2937),
+                color = if (isLive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -208,8 +208,8 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                 val isFavUpdate = match.notablePerformances.contains("★")
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = if (isFavUpdate) Color(0xFFFEF3C7) else MaterialTheme.colorScheme.primaryContainer,
-                    border = if (isFavUpdate) BorderStroke(1.dp, Color(0xFFF59E0B)) else null,
+                    color = if (isFavUpdate) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer,
+                    border = if (isFavUpdate) BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -219,7 +219,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                         Icon(
                             imageVector = if (isFavUpdate) Icons.Default.Star else Icons.AutoMirrored.Filled.TrendingUp,
                             contentDescription = "Fav Player Update",
-                            tint = if (isFavUpdate) Color(0xFFD97706) else MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = if (isFavUpdate) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -228,14 +228,14 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
                                 Text(
                                     text = "FAV PLAYER UPDATE",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFFB45309),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                                     fontWeight = FontWeight.ExtraBold
                                 )
                             }
                             Text(
                                 text = match.notablePerformances,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (isFavUpdate) Color(0xFF78350F) else MaterialTheme.colorScheme.onPrimaryContainer,
+                                color = if (isFavUpdate) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -246,20 +246,7 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
 
             
             Spacer(modifier = Modifier.height(12.dp))
-            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-            OutlinedButton(
-                onClick = {
-                    uriHandler.openUri("https://www.cricbuzz.com/")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-            ) {
-                Text("View Details on Cricbuzz", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open in Cricbuzz", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
             }
-        }
     }
 }
 
@@ -292,13 +279,16 @@ fun getFlagUrl(teamName: String): String? {
     return null
 }
 
+@Composable
 fun getTeamColor(teamName: String): Color {
     val colors = listOf(
-        Color(0xFF3B82F6), Color(0xFFEF4444), Color(0xFF10B981), 
-        Color(0xFFF59E0B), Color(0xFF8B5CF6), Color(0xFFEC4899),
-        Color(0xFF14B8A6), Color(0xFFF97316), Color(0xFF6366F1)
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.error,
+        MaterialTheme.colorScheme.inversePrimary
     )
-    val hash = abs(teamName.hashCode())
-    return colors[hash % colors.size]
+    val hash = teamName.hashCode()
+    return colors[Math.abs(hash) % colors.size]
 }
 

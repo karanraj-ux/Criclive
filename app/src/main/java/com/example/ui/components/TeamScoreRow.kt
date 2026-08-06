@@ -49,7 +49,7 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
                 AsyncImage(
                     model = flagUrl,
                     contentDescription = "$teamName flag",
-                    modifier = Modifier.size(32.dp).clip(CircleShape).background(Color(0xFFE5E7EB)),
+                    modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outlineVariant),
                     contentScale = ContentScale.Crop
                 )
             } else {
@@ -62,7 +62,7 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
                     Text(
                         text = teamName.take(1).uppercase(), 
                         fontWeight = FontWeight.ExtraBold, 
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surface,
                         fontSize = 16.sp
                     )
                 }
@@ -72,7 +72,7 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
                 text = teamName,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
         
@@ -82,7 +82,7 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
                     text = score,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             if (overs.isNotBlank()) {

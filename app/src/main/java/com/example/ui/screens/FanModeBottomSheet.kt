@@ -27,7 +27,7 @@ fun FanModeBottomSheet(
     onSaveWallpaper: (String) -> Unit,
     onEnableFanMode: () -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
         var idolName by remember { mutableStateOf(state.idolName) }
         
         val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -44,20 +44,20 @@ fun FanModeBottomSheet(
                 .padding(24.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700))
+                Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Fan Zone Setup", 
                     style = MaterialTheme.typography.titleLarge, 
                     fontWeight = FontWeight.ExtraBold, 
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Personalize your cricket experience with your favorite player.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6B7280)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -92,13 +92,13 @@ fun FanModeBottomSheet(
                     onDismiss()
                 }, 
                 modifier = Modifier.fillMaxWidth().background(
-                    Brush.horizontalGradient(listOf(Color(0xFFFF007A), Color(0xFF7A00FF))),
+                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)),
                     shape = RoundedCornerShape(12.dp)
                 ), 
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 contentPadding = PaddingValues()
             ) {
-                Text("Enable Fan Mode", fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text("Enable Fan Mode", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimary)
             }
             Spacer(modifier = Modifier.height(32.dp))
         }

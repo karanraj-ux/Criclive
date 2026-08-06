@@ -442,7 +442,7 @@ class CricketRepository(private val context: android.content.Context) {
         return@withContext players.toList().sorted()
     }
 
-    suspend fun getPlayerNews(playerName: String): String? {
+    suspend fun getPlayerNews(playerName: String): List<com.example.model.NewsArticle> {
         return RssParser.fetchPlayerNews(playerName)
     }
 }

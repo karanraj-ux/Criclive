@@ -160,12 +160,12 @@ fun CricketApp(
     } else {
         when (val state = uiState) {
             is CricketUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize().background(Color.White), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             is CricketUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize().background(Color.White), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
                         Spacer(modifier = Modifier.height(16.dp))
@@ -176,7 +176,13 @@ fun CricketApp(
                 }
             }
             is CricketUiState.Success -> {
-                if (state.selectedMatchId != null) {
+                if (state.selectedNewsUrl != null) {
+                    com.example.ui.screens.WebViewScreen(
+                        url = state.selectedNewsUrl,
+                        title = if (state.selectedNewsUrl.contains("cricbuzz.com/live-cricket-scores", ignoreCase = true)) "Live Scorecard" else "News Details",
+                        onBack = { viewModel.updateSelectedNewsUrl(null) }
+                    )
+                } else if (state.selectedMatchId != null) {
                     val match = state.matches.find { it.id == state.selectedMatchId }
                     if (match != null) {
                         if (isPipMode) {
@@ -194,7 +200,8 @@ fun CricketApp(
                                 onPinToWidget = {
                                     val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
                                     viewModel.pinMatchToWidget(newPinnedId, match, context)
-                                }
+                                },
+                                onNewsClick = { viewModel.updateSelectedNewsUrl(it) }
                             )
                         }
                     } else {

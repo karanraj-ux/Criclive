@@ -14,6 +14,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import com.example.ui.CricketApp
 import com.example.ui.theme.CricLiveTheme
 import com.example.viewmodel.CricketViewModel
@@ -36,11 +40,13 @@ class MainActivity : ComponentActivity() {
             val pipHintShown by viewModel.pipHintShown.collectAsStateWithLifecycle(initialValue = false)
             
             CricLiveTheme(darkTheme = false) {
-                CricketApp(
+                Box(modifier = Modifier.fillMaxSize().background(com.example.ui.theme.PremiumGradientLight)) {
+                    CricketApp(
                     viewModel = viewModel,
                     isPipMode = isPipMode,
                     onEnterPip = { enterPip() }
                 )
+                }
             }
         }
     }

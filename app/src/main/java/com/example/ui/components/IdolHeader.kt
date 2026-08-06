@@ -38,21 +38,21 @@ fun IdolHeader(idolName: String, wallpaperUri: String, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFE5E7EB)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         Icons.Default.AddAPhoto, 
                         contentDescription = "Add Photo",
-                        tint = Color(0xFF9CA3AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Tap to set up Fan Zone & add a photo",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF6B7280),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -72,7 +72,7 @@ fun IdolHeader(idolName: String, wallpaperUri: String, onClick: () -> Unit) {
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color(0xCC000000)),
+                                    colors = listOf(Color.Transparent, MaterialTheme.colorScheme.scrim.copy(alpha = 0.8f)),
                                     startY = 100f
                                 )
                             )
@@ -84,7 +84,7 @@ fun IdolHeader(idolName: String, wallpaperUri: String, onClick: () -> Unit) {
                             .fillMaxSize()
                             .background(
                                 Brush.linearGradient(
-                                    colors = listOf(Color(0xFF1E1B4B), Color(0xFF312E81), Color(0xFF4C1D95))
+                                    colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
                                 )
                             )
                     )
@@ -92,7 +92,7 @@ fun IdolHeader(idolName: String, wallpaperUri: String, onClick: () -> Unit) {
                     Icon(
                         Icons.Default.Star, 
                         contentDescription = null,
-                        tint = Color(0xFFFFD700).copy(alpha = 0.2f),
+                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
                         modifier = Modifier.size(120.dp).align(Alignment.TopEnd).offset(x = 20.dp, y = -20.dp)
                     )
                 }
@@ -107,13 +107,13 @@ fun IdolHeader(idolName: String, wallpaperUri: String, onClick: () -> Unit) {
                         fontSize = 42.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.Cursive,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         letterSpacing = 2.sp
                     )
                     Text(
                         text = "Fan Zone",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFFFFD700).copy(alpha = 0.9f),
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f),
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Serif
                     )

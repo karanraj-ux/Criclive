@@ -35,6 +35,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.example.MainActivity
+import com.example.ui.theme.*
 
 class MatchGlanceWidget : GlanceAppWidget() {
     
@@ -73,7 +74,7 @@ class MatchGlanceWidget : GlanceAppWidget() {
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(Color(0xFF1E1E1E))
+                    .background(androidx.glance.color.ColorProvider(day = PremiumSurface, night = DeepCharcoal))
                     .padding(12.dp)
                     .clickable(actionStartActivity(intent))
             ) {
@@ -85,7 +86,7 @@ class MatchGlanceWidget : GlanceAppWidget() {
                         text = status,
                         modifier = GlanceModifier.padding(start = 6.dp).defaultWeight(),
                         style = TextStyle(
-                            color = androidx.glance.color.ColorProvider(if (isLive) Color.Red else Color(0xB3FFFFFF), if (isLive) Color.Red else Color(0xB3FFFFFF)),
+                            color = androidx.glance.color.ColorProvider(day = if (isLive) Color.Red else PremiumTextDark, night = if (isLive) Color.Red else Color.White),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -99,17 +100,17 @@ class MatchGlanceWidget : GlanceAppWidget() {
                 
                 Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = GlanceModifier.defaultWeight()) {
-                        Text(text = team1, style = TextStyle(color = androidx.glance.color.ColorProvider(Color(0xB3FFFFFF), Color(0xB3FFFFFF)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                        Text(text = score1, style = TextStyle(color = androidx.glance.color.ColorProvider(Color.White, Color.White), fontSize = 18.sp, fontWeight = FontWeight.Bold))
-                        Text(text = overs1, style = TextStyle(color = androidx.glance.color.ColorProvider(Color(0x80FFFFFF), Color(0x80FFFFFF)), fontSize = 10.sp))
+                        Text(text = team1, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextDark, night = Color.White), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                        Text(text = score1, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextDark, night = Color.White), fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                        Text(text = overs1, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextMedium, night = Color(0xFFAEAEC0)), fontSize = 10.sp))
                     }
                     
-                    Text(text = "VS", modifier = GlanceModifier.padding(horizontal = 8.dp), style = TextStyle(color = androidx.glance.color.ColorProvider(Color(0x80FFFFFF), Color(0x80FFFFFF)), fontSize = 10.sp, fontWeight = FontWeight.Bold))
+                    Text(text = "VS", modifier = GlanceModifier.padding(horizontal = 8.dp), style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextMedium, night = Color(0xFFAEAEC0)), fontSize = 10.sp, fontWeight = FontWeight.Bold))
                     
                     Column(modifier = GlanceModifier.defaultWeight(), horizontalAlignment = Alignment.End) {
-                        Text(text = team2, style = TextStyle(color = androidx.glance.color.ColorProvider(Color(0xB3FFFFFF), Color(0xB3FFFFFF)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                        Text(text = score2, style = TextStyle(color = androidx.glance.color.ColorProvider(Color.White, Color.White), fontSize = 18.sp, fontWeight = FontWeight.Bold))
-                        Text(text = overs2, style = TextStyle(color = androidx.glance.color.ColorProvider(Color(0x80FFFFFF), Color(0x80FFFFFF)), fontSize = 10.sp))
+                        Text(text = team2, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextDark, night = Color.White), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                        Text(text = score2, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextDark, night = Color.White), fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                        Text(text = overs2, style = TextStyle(color = androidx.glance.color.ColorProvider(day = PremiumTextMedium, night = Color(0xFFAEAEC0)), fontSize = 10.sp))
                     }
                 }
             }

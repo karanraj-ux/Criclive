@@ -48,7 +48,7 @@ fun SettingsBottomSheet(
     onEditPreferences: () -> Unit,
     onSaveMode: (String) -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface) {
         var idolName by remember { mutableStateOf(state.idolName) }
         var showFaq by remember { mutableStateOf(false) }
         var showAbout by remember { mutableStateOf(false) }
@@ -67,18 +67,18 @@ fun SettingsBottomSheet(
                 .fillMaxWidth()
                 .padding(24.dp)
         ) {
-            Text("Settings & Personalization", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color(0xFF111827))
+            Text("Settings & Personalization", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             
-            Text("App Mode", fontWeight = FontWeight.Bold, color = Color(0xFF374151))
+            Text("App Mode", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = appMode == "Standard", onClick = { appMode = "Standard"; onSaveMode("Standard") })
-                    Text("Standard", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                    Text("Standard", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = appMode == "Fan Mode", onClick = { appMode = "Fan Mode"; onSaveMode("Fan Mode") })
-                    Text("Fan Mode", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                    Text("Fan Mode", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
             
@@ -98,7 +98,7 @@ fun SettingsBottomSheet(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = Color(0xFFE5E7EB))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(16.dp))
             
             Button(
@@ -139,8 +139,8 @@ fun SettingsBottomSheet(
             OutlinedButton(
                 onClick = { /* Open Play Store or similar */ },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD97706)),
-                border = BorderStroke(1.dp, Color(0xFFD97706)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.Star, contentDescription = null)

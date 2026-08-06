@@ -43,7 +43,7 @@ fun PipScoreCard(match: Match) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -61,7 +61,7 @@ fun PipScoreCard(match: Match) {
                     text = match.team1.toAbbreviation(),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
-                    color = Color(0xFF111827),
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
@@ -70,13 +70,13 @@ fun PipScoreCard(match: Match) {
                     text = match.score1.ifEmpty { "0/0" },
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF374151),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 Text(
                     text = match.overs1.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it },
                     fontSize = 10.sp,
-                    color = Color(0xFF6B7280),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
             }
@@ -85,7 +85,7 @@ fun PipScoreCard(match: Match) {
             Text(
                 text = "VS",
                 fontSize = 12.sp,
-                color = Color(0xFF9CA3AF),
+                color = MaterialTheme.colorScheme.outline,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
@@ -99,7 +99,7 @@ fun PipScoreCard(match: Match) {
                     text = match.team2.toAbbreviation(),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 16.sp,
-                    color = Color(0xFF111827),
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
@@ -108,13 +108,13 @@ fun PipScoreCard(match: Match) {
                     text = match.score2.ifEmpty { "0/0" },
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF374151),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 Text(
                     text = match.overs2.ifEmpty { "(0.0)" }.let { if (!it.startsWith("(")) "($it)" else it },
                     fontSize = 10.sp,
-                    color = Color(0xFF6B7280),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
             }

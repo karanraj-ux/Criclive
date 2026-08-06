@@ -200,29 +200,41 @@ object RssParser {
         var t2Overs = ""
         
         if (matchScore != null) {
-            val inngs1T1 = matchScore.optJSONObject("team1Score")?.optJSONObject("inngs1")
-            if (inngs1T1 != null) {
-                t1Runs = inngs1T1.opt("runs")?.toString() ?: ""
-                t1Wickets = inngs1T1.opt("wickets")?.toString() ?: ""
-                t1Overs = inngs1T1.opt("overs")?.toString() ?: ""
+            val t1ScoreObj = matchScore.optJSONObject("team1Score")
+            if (t1ScoreObj != null) {
+                val inngs1T1 = t1ScoreObj.optJSONObject("inngs1")
+                val inngs2T1 = t1ScoreObj.optJSONObject("inngs2")
+                val activeInngs = inngs2T1 ?: inngs1T1
+                if (activeInngs != null) {
+                    t1Runs = activeInngs.opt("runs")?.toString() ?: ""
+                    t1Wickets = activeInngs.opt("wickets")?.toString() ?: ""
+                    t1Overs = activeInngs.opt("overs")?.toString() ?: ""
+                }
             }
             
-            val inngs1T2 = matchScore.optJSONObject("team2Score")?.optJSONObject("inngs1")
-            if (inngs1T2 != null) {
-                t2Runs = inngs1T2.opt("runs")?.toString() ?: ""
-                t2Wickets = inngs1T2.opt("wickets")?.toString() ?: ""
-                t2Overs = inngs1T2.opt("overs")?.toString() ?: ""
+            val t2ScoreObj = matchScore.optJSONObject("team2Score")
+            if (t2ScoreObj != null) {
+                val inngs1T2 = t2ScoreObj.optJSONObject("inngs1")
+                val inngs2T2 = t2ScoreObj.optJSONObject("inngs2")
+                val activeInngs = inngs2T2 ?: inngs1T2
+                if (activeInngs != null) {
+                    t2Runs = activeInngs.opt("runs")?.toString() ?: ""
+                    t2Wickets = activeInngs.opt("wickets")?.toString() ?: ""
+                    t2Overs = activeInngs.opt("overs")?.toString() ?: ""
+                }
             }
         }
         
-                val t1Str = if (t1Runs.isNotEmpty()) {
-            if (t1Overs.isNotEmpty()) "$team1Name $t1Runs/$t1Wickets ($t1Overs ov)"
-            else "$team1Name $t1Runs/$t1Wickets"
+        val t1ScoreFormatted = if (t1Wickets.isNotEmpty()) "$t1Runs/$t1Wickets" else t1Runs
+        val t1Str = if (t1Runs.isNotEmpty()) {
+            if (t1Overs.isNotEmpty()) "$team1Name $t1ScoreFormatted ($t1Overs ov)"
+            else "$team1Name $t1ScoreFormatted"
         } else team1Name
         
+        val t2ScoreFormatted = if (t2Wickets.isNotEmpty()) "$t2Runs/$t2Wickets" else t2Runs
         val t2Str = if (t2Runs.isNotEmpty()) {
-            if (t2Overs.isNotEmpty()) "$team2Name $t2Runs/$t2Wickets ($t2Overs ov)"
-            else "$team2Name $t2Runs/$t2Wickets"
+            if (t2Overs.isNotEmpty()) "$team2Name $t2ScoreFormatted ($t2Overs ov)"
+            else "$team2Name $t2ScoreFormatted"
         } else team2Name
         
         val displayDesc = if (matchDesc.isNotEmpty()) "$matchDesc - $status" else status
@@ -265,7 +277,7 @@ object RssParser {
             
             val matchId = matchInfo.optInt("matchId", 0)
             val slug = "${team1Name.replace(" ", "-").lowercase()}-vs-${team2Name.replace(" ", "-").lowercase()}-${matchDesc.replace(" ", "-").lowercase()}-${seriesName.replace(" ", "-").lowercase()}"
-            val matchLink = "https://www.cricbuzz.com/"
+            val matchLink = if (matchId > 0) "https://www.cricbuzz.com/live-cricket-scores/$matchId/$slug" else "https://www.cricbuzz.com/"
 
             matches.add(RssItem(
                 title = finalTitle, 
@@ -287,7 +299,8 @@ object RssParser {
         }
     }
 
-    suspend fun fetchPlayerNews(playerName: String): String? = withContext(Dispatchers.IO) {
+    suspend fun fetchPlayerNews(playerName: String): List<com.example.model.NewsArticle> = withContext(Dispatchers.IO) {
+        val newsList = mutableListOf<com.example.model.NewsArticle>()
         try {
             val query = if (playerName.isNotBlank()) "$playerName cricket" else "cricket match updates"
             val encodedName = java.net.URLEncoder.encode(query, "UTF-8")
@@ -300,31 +313,51 @@ object RssParser {
             factory.isNamespaceAware = true
             val parser = factory.newPullParser()
             parser.setInput(java.io.StringReader(xmlString))
-
             var eventType = parser.eventType
-            var inItem = false
-
+                        var inItem = false
+            var currentTitle = ""
+            var currentLink = ""
+            var currentPubDate = ""
+            val dateFormat = java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", java.util.Locale.US)
             while (eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
                 val tagName = parser.name
                 when (eventType) {
                     org.xmlpull.v1.XmlPullParser.START_TAG -> {
                         if (tagName.equals("item", ignoreCase = true)) {
                             inItem = true
+                            currentTitle = ""
+                            currentLink = ""
+                            currentPubDate = ""
                         } else if (inItem && tagName.equals("title", ignoreCase = true)) {
-                            return@withContext parser.nextText()
+                            currentTitle = parser.nextText()
+                        } else if (inItem && tagName.equals("link", ignoreCase = true)) {
+                            currentLink = parser.nextText()
+                        } else if (inItem && tagName.equals("pubDate", ignoreCase = true)) {
+                            currentPubDate = parser.nextText()
                         }
                     }
                     org.xmlpull.v1.XmlPullParser.END_TAG -> {
                         if (tagName.equals("item", ignoreCase = true)) {
                             inItem = false
+                            if (currentTitle.isNotBlank() && currentLink.isNotBlank()) {
+                                var timeMillis = 0L
+                                try {
+                                    if (currentPubDate.isNotBlank()) {
+                                        timeMillis = dateFormat.parse(currentPubDate)?.time ?: 0L
+                                    }
+                                } catch (e: Exception) {}
+                                newsList.add(com.example.model.NewsArticle(currentTitle, currentLink, timeMillis, currentPubDate))
+                            }
                         }
                     }
                 }
                 eventType = parser.next()
             }
+            newsList.sortByDescending { it.pubDate }
+            return@withContext newsList.take(20)
         } catch (e: Exception) {
             android.util.Log.e("RssParser", "Error fetching news for player: $playerName", e)
         }
-        null
+        newsList
     }
 }

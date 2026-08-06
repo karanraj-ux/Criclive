@@ -25,7 +25,8 @@ sealed interface CricketUiState {
         val wallpaperUri: String = "",
         val appMode: String = "Fan Mode",
         val pinnedMatchId: String = "",
-        val playerNews: String? = null
+        val playerNews: List<com.example.model.NewsArticle> = emptyList(),
+        val selectedNewsUrl: String? = null
     ) : CricketUiState
     data class Error(val message: String) : CricketUiState
 }
@@ -36,7 +37,7 @@ class CricketViewModel(
 ) : ViewModel() {
     
     
-    private val _playerNews = MutableStateFlow<String?>(null)
+    private val _playerNews = MutableStateFlow<List<com.example.model.NewsArticle>>(emptyList())
 
     private val _searchQuery = MutableStateFlow("")
     
@@ -44,6 +45,7 @@ class CricketViewModel(
     val suggestedPlayers: StateFlow<List<String>> = _suggestedPlayers.asStateFlow()
     
     private val _selectedMatchId = MutableStateFlow<String?>(null)
+    private val _selectedNewsUrl = MutableStateFlow<String?>(null)
     
     private val _fetchResult = MutableStateFlow<FetchResult>(FetchResult.Loading)
     private val _lastUpdated = MutableStateFlow("Just now")
@@ -56,7 +58,7 @@ class CricketViewModel(
 
 val uiState: StateFlow<CricketUiState> = combine(
         _fetchResult,
-        combine(_searchQuery, _playerNews) { q, p -> Pair(q, p) },
+        combine(_searchQuery, _playerNews, _selectedNewsUrl) { q, p, n -> Triple(q, p, n) },
         onboardingManager.preferredTeams,
         onboardingManager.preferredPlayers,
         combine(
@@ -73,9 +75,10 @@ val uiState: StateFlow<CricketUiState> = combine(
         ) { id, time, idol, triple ->  
             SixTuple(id, time, idol, triple.first, triple.second, triple.third)
         }
-    ) { fetchResult, queryAndNews, preferredTeams, preferredPlayers, extra ->
-        val query = queryAndNews.first
-        val playerNews = queryAndNews.second
+    ) { fetchResult, queryNewsAndUrl, preferredTeams, preferredPlayers, extra ->
+        val query = queryNewsAndUrl.first
+        val playerNews = queryNewsAndUrl.second
+        val selectedNewsUrl = queryNewsAndUrl.third
         val selectedId = extra.a
         val lastUpdated = extra.b
         val idolName = extra.c
@@ -124,7 +127,8 @@ val uiState: StateFlow<CricketUiState> = combine(
                     wallpaperUri = wallpaperUri,
                     appMode = appMode,
                     pinnedMatchId = pinnedMatchId,
-                    playerNews = playerNews
+                    playerNews = playerNews,
+                    selectedNewsUrl = selectedNewsUrl
                 )
             }
         }
@@ -216,6 +220,11 @@ val uiState: StateFlow<CricketUiState> = combine(
                 onboardingManager.saveWallpaperUri(uri)
             }
         }
+    }
+
+    
+    fun updateSelectedNewsUrl(url: String?) {
+        _selectedNewsUrl.value = url
     }
 
     fun updateAppMode(mode: String) {

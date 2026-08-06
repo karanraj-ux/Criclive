@@ -86,10 +86,16 @@ fun MatchListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("CricLive", fontWeight = FontWeight.ExtraBold, color = Color(0xFF111827)) },
+                title = { 
+                    androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.EmojiEvents, contentDescription = "Trophy", tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                        androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                        androidx.compose.material3.Text("CricLive", fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showModeTooltip = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Info, contentDescription = "Mode Info", tint = Color(0xFF6B7280))
+                        Icon(Icons.Default.Info, contentDescription = "Mode Info", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     
@@ -99,16 +105,16 @@ fun MatchListScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .background(
                                 if (state.appMode == "Fan Mode") 
-                                    Brush.horizontalGradient(listOf(Color(0xFFFF007A), Color(0xFF7A00FF)))
+                                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))
                                 else 
-                                    Brush.horizontalGradient(listOf(Color(0xFFE5E7EB), Color(0xFFD1D5DB)))
+                                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.colorScheme.outline))
                             )
                             .clickable { onToggleMode() }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = if (state.appMode == "Fan Mode") "Fan Mode" else "Standard", 
-                            color = if (state.appMode == "Fan Mode") Color.White else Color(0xFF374151), 
+                            color = if (state.appMode == "Fan Mode") MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant, 
                             fontWeight = FontWeight.Bold, 
                             fontSize = 12.sp
                         )
@@ -116,18 +122,16 @@ fun MatchListScreen(
                     
                     Spacer(modifier = Modifier.width(4.dp))
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF111827))
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.onBackground)
                     }
                     IconButton(onClick = onRefresh) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF111827))
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors( scrolledContainerColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.9f))
             )
         },
-        containerColor = Color(0xFFF3F4F6)
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
@@ -136,7 +140,7 @@ fun MatchListScreen(
         ) {
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                containerColor = Color.White,
+                
                 contentColor = MaterialTheme.colorScheme.primary,
                 indicator = { tabPositions ->
                     if (selectedTabIndex < tabPositions.size) {
@@ -156,7 +160,7 @@ fun MatchListScreen(
                             Text(
                                 title, 
                                 fontWeight = FontWeight.ExtraBold, 
-                                color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color(0xFF374151)
+                                color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             ) 
                         }
                     )
@@ -169,15 +173,15 @@ fun MatchListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                placeholder = { Text("Search matches, teams...", color = Color(0xFF6B7280)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF374151)) },
+                placeholder = { Text("Search matches, teams...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedTextColor = Color(0xFF111827),
-                    unfocusedTextColor = Color(0xFF111827)
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
 
@@ -192,25 +196,26 @@ fun MatchListScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E8FF))
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
-                                    modifier = Modifier.size(40.dp).background(Color(0xFF9333EA), CircleShape),
+                                    modifier = Modifier.size(40.dp).background(MaterialTheme.colorScheme.secondary, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Widgets, contentDescription = null, tint = Color.White)
+                                    Icon(Icons.Default.Widgets, contentDescription = null, tint = MaterialTheme.colorScheme.surface)
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Add the Home Screen Widget!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF6B21A8))
-                                    Text("Get live scores directly on your home screen without opening the app.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF581C87))
+                                    Text("Add the Home Screen Widget!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Text("Get live scores directly on your home screen without opening the app.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                                 }
                                 IconButton(onClick = { showWidgetBanner = false }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = Color(0xFF6B21A8))
+                                    Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = MaterialTheme.colorScheme.onSecondaryContainer)
                                 }
                             }
                         }
@@ -244,15 +249,15 @@ fun MatchListScreen(
                                 topPlayers.forEach { player ->
                                     Surface(
                                         shape = RoundedCornerShape(16.dp),
-                                        color = Color.White,
-                                        border = BorderStroke(1.dp, Color(0xFF6B7280))
+                                        color = MaterialTheme.colorScheme.surface,
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant)
                                     ) {
                                         Text(
                                             text = player,
                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                             style = MaterialTheme.typography.labelLarge,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF111827)
+                                            color = MaterialTheme.colorScheme.onBackground
                                         )
                                     }
                                 }
@@ -267,13 +272,13 @@ fun MatchListScreen(
                             text = if (state.isOffline) "OFFLINE (CACHED DATA)" else "LIVE UPDATES",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (state.isOffline) Color(0xFFB91C1C) else Color(0xFF047857)
+                            color = if (state.isOffline) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = "Updated: ${state.lastUpdated}",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF374151)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -281,7 +286,7 @@ fun MatchListScreen(
                 if (matchesToShow.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No matches found.", color = Color(0xFF374151), fontWeight = FontWeight.Medium)
+                            Text("No matches found.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                         }
                     }
                 } else {
