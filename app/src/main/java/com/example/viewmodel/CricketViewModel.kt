@@ -275,7 +275,7 @@ val uiState: StateFlow<CricketUiState> = combine(
                 )
             }
             
-            val workRequest = androidx.work.OneTimeWorkRequestBuilder<com.example.widget.WidgetUpdateWorker>().build()
+            val workRequest = androidx.work.OneTimeWorkRequestBuilder<com.example.worker.MatchUpdateWorker>().build()
             androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("WidgetUpdate", androidx.work.ExistingWorkPolicy.REPLACE, workRequest)
         }
     }

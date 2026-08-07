@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CricLive"
+rootProject.name = "CricZen"
 include(":app")

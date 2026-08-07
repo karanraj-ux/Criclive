@@ -1,8 +1,8 @@
-# Contributing to CricLive 🤝
+# Contributing to CricZen 🤝
 
-First off, thank you for considering contributing to CricLive! It's people like you that make the open-source community in India and worldwide so amazing. 
+First off, thank you for considering contributing to CricZen! It's people like you that make the open-source community in India and worldwide so amazing. 
 
-Since CricLive is heavily targeted towards students learning Android, we welcome beginners! Don't hesitate to open a Pull Request even if you're just fixing a typo or adding a comment.
+Since CricZen is heavily targeted towards students learning Android, we welcome beginners! Don't hesitate to open a Pull Request even if you're just fixing a typo or adding a comment.
 
 ## How Can I Contribute?
 
@@ -17,7 +17,7 @@ Since CricLive is heavily targeted towards students learning Android, we welcome
 If you are a designer, we always need help improving our Material 3 layouts, adding new animations, or creating assets (like placeholders for Fan Mode).
 
 ### 3. Translations
-We want CricLive to be accessible across India. If you can translate the app into Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, or any other regional language, please open an issue!
+We want CricZen to be accessible across India. If you can translate the app into Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, or any other regional language, please open an issue!
 
 ## Development Guidelines
 * We use **Kotlin** and **Jetpack Compose** exclusively. 

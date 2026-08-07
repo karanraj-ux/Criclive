@@ -45,11 +45,31 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
     if (showPinInfo) {
         AlertDialog(
             onDismissRequest = { showPinInfo = false },
-            title = { Text("Widget Pinning", fontWeight = FontWeight.Bold) },
-            text = { Text("Pin this match to display its live score directly on your home screen widget.\n\nOnly one match can be pinned at a time.") },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(24.dp),
+            icon = {
+                Icon(
+                    Icons.Default.PushPin, 
+                    contentDescription = null, 
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = { Text("Widget Pinning", fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleLarge) },
+            text = { 
+                Text(
+                    "Pin this match to display its live score directly on your home screen widget.\n\nOnly one match can be pinned at a time.",
+                    fontSize = 15.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            },
             confirmButton = {
-                TextButton(onClick = { showPinInfo = false }) {
-                    Text("Got it")
+                Button(
+                    onClick = { showPinInfo = false },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Got it", fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -188,9 +208,9 @@ fun MatchCard(match: Match, isPreferred: Boolean, isPinned: Boolean = false, onP
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            TeamScoreRow(teamName = match.team1, score = match.score1, overs = match.overs1)
+            TeamScoreRow(teamName = match.team1, score = match.score1, overs = match.overs1, seriesName = match.seriesName)
             Spacer(modifier = Modifier.height(12.dp))
-            TeamScoreRow(teamName = match.team2, score = match.score2, overs = match.overs2)
+            TeamScoreRow(teamName = match.team2, score = match.score2, overs = match.overs2, seriesName = match.seriesName)
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(8.dp))

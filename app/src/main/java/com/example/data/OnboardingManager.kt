@@ -35,10 +35,15 @@ class OnboardingManager(private val context: Context) {
         val WIDGET_PINNED_SCORE2 = stringPreferencesKey("widget_pinned_score2")
         val WIDGET_PINNED_OVERS2 = stringPreferencesKey("widget_pinned_overs2")
         val WIDGET_PINNED_STATUS = stringPreferencesKey("widget_pinned_status")
+        val NOTIFIED_MATCHES = stringSetPreferencesKey("notified_matches")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[ONBOARDING_COMPLETED] ?: false
+    }
+
+    val notifiedMatches: Flow<Set<String>> = context.dataStore.data.map { preferences ->
+        preferences[NOTIFIED_MATCHES] ?: emptySet()
     }
 
     val preferredTeams: Flow<Set<String>> = context.dataStore.data.map { preferences ->
@@ -166,6 +171,13 @@ class OnboardingManager(private val context: Context) {
             preferences[WIDGET_PINNED_SCORE2] = score2
             preferences[WIDGET_PINNED_OVERS2] = overs2
             preferences[WIDGET_PINNED_STATUS] = status
+        }
+    }
+
+    suspend fun addNotifiedMatch(matchKey: String) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[NOTIFIED_MATCHES] ?: emptySet()
+            preferences[NOTIFIED_MATCHES] = current + matchKey
         }
     }
 }

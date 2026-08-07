@@ -158,12 +158,12 @@ fun SettingsBottomSheet(
         if (showAbout) {
             AlertDialog(
                 onDismissRequest = { showAbout = false },
-                title = { Text("About CricLive", fontWeight = FontWeight.Bold) },
+                title = { Text("About CricZen", fontWeight = FontWeight.Bold) },
                 text = {
                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                         Text("Version 1.2 (F-Droid Ready)", fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("CricLive is a fully open-source, privacy-respecting cricket score app built for fans.", style = MaterialTheme.typography.bodySmall)
+                        Text("CricZen is a fully open-source, privacy-respecting cricket score app built for fans.", style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Privacy Policy:", fontWeight = FontWeight.Bold)
                         Text("We do NOT collect, store, or share any personal data. All data fetching is done directly from public RSS feeds to your device. Your favorite players and settings are stored locally on your device.", style = MaterialTheme.typography.bodySmall)

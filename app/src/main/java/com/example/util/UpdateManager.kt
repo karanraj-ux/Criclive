@@ -60,10 +60,10 @@ object UpdateManager {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val uri = Uri.parse(downloadUrl)
         val request = DownloadManager.Request(uri).apply {
-            setTitle("CricLive Update")
+            setTitle("CricZen Update")
             setDescription("Downloading latest version...")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "CricLive_update.apk")
+            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "CricZen_update.apk")
             setAllowedOverMetered(true)
             setAllowedOverRoaming(true)
         }
@@ -88,7 +88,7 @@ object UpdateManager {
     }
 
     private fun installApk(context: Context) {
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "CricLive_update.apk")
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "CricZen_update.apk")
         if (file.exists()) {
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             val intent = Intent(Intent.ACTION_VIEW).apply {

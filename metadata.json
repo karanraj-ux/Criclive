@@ -1,6 +1,6 @@
 {
-  "name": "CricLive",
-  "description": "CricLive widget and score tracking app",
+  "name": "CricZen",
+  "description": "CricZen widget and score tracking app",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

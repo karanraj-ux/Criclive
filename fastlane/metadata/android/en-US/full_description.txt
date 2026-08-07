@@ -1,4 +1,4 @@
-CricLive is a free, open-source Android application that provides live cricket scores, match updates, and news. 
+CricZen is a free, open-source Android application that provides live cricket scores, match updates, and news. 
 
 Features:
 - Real-time live scores and commentary

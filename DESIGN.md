@@ -1,7 +1,7 @@
-# CricLive: Architecture & Design Documentation
+# CricZen: Architecture & Design Documentation
 
 ## 1. Core Architecture
-CricLive is built using a modern Android tech stack following the **MVVM (Model-View-ViewModel)** pattern.
+CricZen is built using a modern Android tech stack following the **MVVM (Model-View-ViewModel)** pattern.
 - **Language**: Kotlin
 - **UI Framework**: Jetpack Compose (Material Design 3)
 - **State Management**: StateFlow & Coroutines

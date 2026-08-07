@@ -1,12 +1,16 @@
 package com.example.ui
 
+import android.os.Build
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.widget.WidgetUpdateWorker
+import com.example.worker.MatchUpdateWorker
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,8 +72,19 @@ fun CricketApp(
     var forceOnboarding by remember { mutableStateOf(false) }
     var appUpdate by remember { mutableStateOf<AppUpdate?>(null) }
 
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {}
+    
     LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
         viewModel.incrementAppOpens()
+
         // Checking for a real update from GitHub Releases
         val update = UpdateManager.checkForUpdate()
         if (update != null && update.isUpdateAvailable && update.version != BuildConfig.VERSION_NAME) {
@@ -88,7 +104,7 @@ fun CricketApp(
                 title = { Text("Next Phase Plan: Local Scorer", fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
-                        Text("Are you enjoying CricLive? We are planning to add a manual easy scorer for local tournaments (like gully cricket) with sharing options.", fontWeight = FontWeight.SemiBold)
+                        Text("Are you enjoying CricZen? We are planning to add a manual easy scorer for local tournaments (like gully cricket) with sharing options.", fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(8.dp))
                         Text("Would you find this feature useful?", style = MaterialTheme.typography.bodySmall)
                     }
@@ -143,110 +159,119 @@ fun CricketApp(
         )
     }
 
-    if (!isOnboardingCompleted || forceOnboarding) {
-        val initialMode = if (uiState is CricketUiState.Success) (uiState as CricketUiState.Success).appMode else "Fan Mode"
-        OnboardingScreen(
-            onComplete = { teams, players, mode ->
-                viewModel.updateAppMode(mode)
-                viewModel.completeOnboarding(teams, players)
-                forceOnboarding = false
-            },
-            suggestedPlayers = suggestedPlayers,
-            onTeamsSelected = { teams ->
-                viewModel.fetchSuggestedPlayers(teams)
-            },
-            initialMode = initialMode
-        )
-    } else {
-        when (val state = uiState) {
-            is CricketUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+    Box(modifier = Modifier.fillMaxSize()) {
+        val showOnboarding = !isOnboardingCompleted || forceOnboarding
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (showOnboarding) Modifier.blur(12.dp) else Modifier)
+        ) {
+            when (val state = uiState) {
+                is CricketUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
                 }
-            }
-            is CricketUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.refresh() }) {
-                            Text("Retry")
+                is CricketUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = { viewModel.refresh() }) {
+                                Text("Retry")
+                            }
                         }
                     }
                 }
-            }
-            is CricketUiState.Success -> {
-                if (state.selectedNewsUrl != null) {
-                    com.example.ui.screens.WebViewScreen(
-                        url = state.selectedNewsUrl,
-                        title = if (state.selectedNewsUrl.contains("cricbuzz.com/live-cricket-scores", ignoreCase = true)) "Live Scorecard" else "News Details",
-                        onBack = { viewModel.updateSelectedNewsUrl(null) }
-                    )
-                } else if (state.selectedMatchId != null) {
-                    val match = state.matches.find { it.id == state.selectedMatchId }
-                    if (match != null) {
-                        if (isPipMode) {
-                            PipScoreCard(match = match)
+                is CricketUiState.Success -> {
+                    if (state.selectedNewsUrl != null) {
+                        com.example.ui.screens.WebViewScreen(
+                            url = state.selectedNewsUrl,
+                            title = if (state.selectedNewsUrl.contains("cricbuzz.com/live-cricket-scores", ignoreCase = true)) "Live Scorecard" else "News Details",
+                            onBack = { viewModel.updateSelectedNewsUrl(null) }
+                        )
+                    } else if (state.selectedMatchId != null) {
+                        val match = state.matches.find { it.id == state.selectedMatchId }
+                        if (match != null) {
+                            if (isPipMode) {
+                                PipScoreCard(match = match)
+                            } else {
+                                MatchDetailScreen(
+                                    match = match,
+                                    isPreferred = state.preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) },
+                                    pipHintShown = pipHintShown,
+                                    pinnedMatchId = state.pinnedMatchId,
+                                    playerNews = state.playerNews,
+                                    onDismissPipHint = { viewModel.setPipHintShown(true) },
+                                    onBack = { viewModel.selectMatch(null) },
+                                    onEnterPip = onEnterPip,
+                                    onPinToWidget = {
+                                        val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
+                                        viewModel.pinMatchToWidget(newPinnedId, match, context)
+                                    },
+                                    onNewsClick = { viewModel.updateSelectedNewsUrl(it) }
+                                )
+                            }
                         } else {
-                            MatchDetailScreen(
-                                match = match,
-                                isPreferred = state.preferredTeams.any { match.team1.contains(it, true) || match.team2.contains(it, true) },
-                                pipHintShown = pipHintShown,
-                                pinnedMatchId = state.pinnedMatchId,
-                                playerNews = state.playerNews,
-                                onDismissPipHint = { viewModel.setPipHintShown(true) },
-                                onBack = { viewModel.selectMatch(null) },
-                                onEnterPip = onEnterPip,
-                                onPinToWidget = {
-                                    val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
-                                    viewModel.pinMatchToWidget(newPinnedId, match, context)
-                                },
-                                onNewsClick = { viewModel.updateSelectedNewsUrl(it) }
-                            )
+                            viewModel.selectMatch(null)
                         }
                     } else {
-                        viewModel.selectMatch(null)
+                        MatchListScreen(
+                            state = state,
+                            onMatchClick = { viewModel.selectMatch(it.id) },
+                            onPinClick = { match -> 
+                                val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
+                                viewModel.pinMatchToWidget(newPinnedId, match, context)
+                            },
+                            onRefresh = { viewModel.refresh() },
+                            onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                            onSettingsClick = { showSettings = true },
+                            onFanModeClick = { showFanModeDialog = true },
+                            onToggleMode = { viewModel.updateAppMode(if (state.appMode == "Fan Mode") "Standard" else "Fan Mode") }
+                        )
                     }
-                } else {
-                    MatchListScreen(
-                        state = state,
-                        onMatchClick = { viewModel.selectMatch(it.id) },
-                        onPinClick = { match -> 
-                            val newPinnedId = if (state.pinnedMatchId == match.id) "" else match.id
-                            viewModel.pinMatchToWidget(newPinnedId, match, context)
-                        },
-                        onRefresh = { viewModel.refresh() },
-                        onSearchQueryChange = { viewModel.updateSearchQuery(it) },
-                        onSettingsClick = { showSettings = true },
-                        onFanModeClick = { showFanModeDialog = true },
-                        onToggleMode = { viewModel.updateAppMode(if (state.appMode == "Fan Mode") "Standard" else "Fan Mode") }
-                    )
-                }
-                
-                if (showFanModeDialog) {
-                    FanModeBottomSheet(
-                        state = state,
-                        onDismiss = { showFanModeDialog = false },
-                        onSaveIdol = { viewModel.updateIdolName(it) },
-                        onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
-                        onEnableFanMode = { viewModel.updateAppMode("Fan Mode") }
-                    )
-                }
-
-                if (showSettings) {
-                    SettingsBottomSheet(
-                        state = state,
-                        onDismiss = { showSettings = false },
-                        onSaveIdol = { viewModel.updateIdolName(it) },
-                        onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
-                        onEditPreferences = { 
-                            showSettings = false
-                            forceOnboarding = true 
-                        },
-                        onSaveMode = { viewModel.updateAppMode(it) }
-                    )
+                    
+                    if (showFanModeDialog) {
+                        FanModeBottomSheet(
+                            state = state,
+                            onDismiss = { showFanModeDialog = false },
+                            onSaveIdol = { viewModel.updateIdolName(it) },
+                            onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
+                            onEnableFanMode = { viewModel.updateAppMode("Fan Mode") }
+                        )
+                    }
+                    if (showSettings) {
+                        SettingsBottomSheet(
+                            state = state,
+                            onDismiss = { showSettings = false },
+                            onSaveIdol = { viewModel.updateIdolName(it) },
+                            onSaveWallpaper = { viewModel.updateWallpaperUri(it, context) },
+                            onEditPreferences = { 
+                                showSettings = false
+                                forceOnboarding = true 
+                            },
+                            onSaveMode = { viewModel.updateAppMode(it) }
+                        )
+                    }
                 }
             }
+        }
+        
+        if (showOnboarding) {
+            val initialMode = if (uiState is CricketUiState.Success) (uiState as CricketUiState.Success).appMode else "Fan Mode"
+            OnboardingScreen(
+                onComplete = { teams, players, mode ->
+                    viewModel.updateAppMode(mode)
+                    viewModel.completeOnboarding(teams, players)
+                    forceOnboarding = false
+                },
+                suggestedPlayers = suggestedPlayers,
+                onTeamsSelected = { teams ->
+                    viewModel.fetchSuggestedPlayers(teams)
+                },
+                initialMode = initialMode
+            )
         }
     }
 }

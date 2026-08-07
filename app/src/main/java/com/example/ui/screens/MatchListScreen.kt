@@ -55,19 +55,49 @@ fun MatchListScreen(
     if (showModeTooltip) {
         AlertDialog(
             onDismissRequest = { showModeTooltip = false },
-            title = { Text("App Modes", fontWeight = FontWeight.Bold) },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(24.dp),
+            icon = {
+                Icon(
+                    Icons.Default.Star, 
+                    contentDescription = null, 
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = { 
+                Text("App Modes", fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleLarge) 
+            },
             text = { 
                 Column {
-                    Text("Fan Mode:", fontWeight = FontWeight.Bold)
-                    Text("Get a personalized layout with your favorite player's wallpaper, quick access to top stats, and customized themes.", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Standard Mode:", fontWeight = FontWeight.Bold)
-                    Text("A clean, traditional list of all cricket matches without extra visuals or wallpapers.", fontSize = 14.sp)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("Fan Mode", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text("A premium, personalized layout with your idol's wallpaper, quick stat access, and custom themes.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("Standard Mode", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text("A clean, minimalist traditional list of all cricket matches. Pure focus, zero visual clutter.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        }
+                    }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showModeTooltip = false }) {
-                    Text("Got it")
+                Button(
+                    onClick = { showModeTooltip = false },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Got it", fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -90,7 +120,7 @@ fun MatchListScreen(
                     androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.EmojiEvents, contentDescription = "Trophy", tint = androidx.compose.material3.MaterialTheme.colorScheme.primary)
                         androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
-                        androidx.compose.material3.Text("CricLive", fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
+                        androidx.compose.material3.Text("CricZen", fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {

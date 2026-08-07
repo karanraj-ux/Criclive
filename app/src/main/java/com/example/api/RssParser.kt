@@ -171,12 +171,46 @@ object RssParser {
         }
     }
 
+    private fun expandTeamName(name: String): String {
+        return when (name.uppercase()) {
+            "IND" -> "India"
+            "AUS" -> "Australia"
+            "ENG" -> "England"
+            "PAK" -> "Pakistan"
+            "RSA", "SA" -> "South Africa"
+            "NZ" -> "New Zealand"
+            "SL" -> "Sri Lanka"
+            "WI" -> "West Indies"
+            "BAN" -> "Bangladesh"
+            "AFG" -> "Afghanistan"
+            "IRE" -> "Ireland"
+            "ZIM" -> "Zimbabwe"
+            "NED" -> "Netherlands"
+            "SCO" -> "Scotland"
+            "OMA" -> "Oman"
+            "NAM" -> "Namibia"
+            "UAE" -> "UAE"
+            "NEP" -> "Nepal"
+            "UGA" -> "Uganda"
+            "PNG" -> "Papua New Guinea"
+            "USA" -> "USA"
+            "CAN" -> "Canada"
+            "HK" -> "Hong Kong"
+            "KUW" -> "Kuwait"
+            "MAL" -> "Malaysia"
+            "SIN" -> "Singapore"
+            "BHR" -> "Bahrain"
+            "QAT" -> "Qatar"
+            else -> name
+        }
+    }
+
     private fun parseSingleCricbuzzMatch(matchObj: JSONObject, cbUrl: String, matches: MutableList<RssItem>, titles: MutableSet<String>, fallbackSeries: String = "") {
         val matchInfo = matchObj.optJSONObject("matchInfo") ?: return
         val matchScore = matchObj.optJSONObject("matchScore")
         
-        val team1Name = matchInfo.optJSONObject("team1")?.optString("teamName") ?: return
-        val team2Name = matchInfo.optJSONObject("team2")?.optString("teamName") ?: return
+        val team1Name = expandTeamName(matchInfo.optJSONObject("team1")?.optString("teamName") ?: return)
+        val team2Name = expandTeamName(matchInfo.optJSONObject("team2")?.optString("teamName") ?: return)
         val status = matchInfo.optString("status")
         val matchDesc = matchInfo.optString("matchDesc", "")
         var seriesName = matchInfo.optString("seriesName", "").ifEmpty {

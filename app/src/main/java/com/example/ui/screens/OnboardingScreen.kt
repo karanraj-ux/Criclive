@@ -45,9 +45,11 @@ fun OnboardingScreen(
     onTeamsSelected: (Set<String>) -> Unit,
     initialMode: String
 ) {
-    var step by remember { mutableStateOf(1) }
+    var step by remember { mutableStateOf(0) }
     var selectedMode by remember { mutableStateOf(initialMode) }
     
+    val bgColor = if (step == 0) Color.Black.copy(alpha = 0.5f) else MaterialTheme.colorScheme.background
+
     val internationalTeams = CricketConstants.INTERNATIONAL_TEAMS
     val t20Leagues = CricketConstants.T20_LEAGUES
     
@@ -59,33 +61,64 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(bgColor)
             .padding(24.dp)
             .systemBarsPadding()
     ) {
-        // App branding at top
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 32.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+        if (step > 0) {
+            // App branding at top
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 32.dp)
             ) {
-                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    "CricZen",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
-            Spacer(Modifier.width(16.dp))
-            Text(
-                "CricLive",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onBackground
-            )
         }
-        if (step == 1) {
+
+        if (step == 0) {
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color.White, modifier = Modifier.size(72.dp).align(Alignment.CenterHorizontally))
+            Spacer(Modifier.height(24.dp))
+            Text(
+                text = "Welcome to CricZen",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Your personalized cricket experience.\nZero clutter, purely your game.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.LightGray,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = { step = 1 },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Start Setup", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+        } else if (step == 1) {
             Text(
                 text = "Choose Your Experience",
                 style = MaterialTheme.typography.headlineLarge,
@@ -389,24 +422,51 @@ fun OnboardingScreen(
             }
             Spacer(modifier = Modifier.height(32.dp))
             
+            // Premium Banner
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Star, contentDescription = "Premium Experience", modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "Why CricZen?", 
+                        fontWeight = FontWeight.ExtraBold, 
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Unlike cluttered apps like Cricbuzz, CricZen filters the noise. We bring you priority news, a 'My Team' focus, and your idol on your wallpaper.", 
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.PictureInPicture, contentDescription = "PiP", modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Icon(Icons.Default.PictureInPicture, contentDescription = "PiP", modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                     Spacer(Modifier.height(16.dp))
                     Text(
                         text = "Picture-in-Picture (PiP)", 
                         fontWeight = FontWeight.ExtraBold, 
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "You can minimize any match into a floating widget while you use other apps! Just click 'Minimize to Floating Player' inside any match.", 
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = "Minimize any match into a floating widget while you use other apps!", 
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )

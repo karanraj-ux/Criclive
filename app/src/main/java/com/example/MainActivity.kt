@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.example.ui.CricketApp
-import com.example.ui.theme.CricLiveTheme
+import com.example.ui.theme.CricZenTheme
 import com.example.viewmodel.CricketViewModel
 
 class MainActivity : ComponentActivity() {
@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
             val isFirstLaunch by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle(initialValue = false)
             val pipHintShown by viewModel.pipHintShown.collectAsStateWithLifecycle(initialValue = false)
             
-            CricLiveTheme(darkTheme = false) {
+            CricZenTheme(darkTheme = false) {
                 Box(modifier = Modifier.fillMaxSize().background(com.example.ui.theme.PremiumGradientLight)) {
                     CricketApp(
                     viewModel = viewModel,

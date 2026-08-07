@@ -37,7 +37,7 @@ import com.example.ui.components.*
 import com.example.ui.screens.*
 
 @Composable
-fun TeamScoreRow(teamName: String, score: String, overs: String) {
+fun TeamScoreRow(teamName: String, score: String, overs: String, seriesName: String = "") {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -85,8 +85,11 @@ fun TeamScoreRow(teamName: String, score: String, overs: String) {
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
-            if (overs.isNotBlank()) {
-                val cleanOvers = if (overs.lowercase().contains("ov")) overs else "$overs ov"
+            val displayOvers = overs
+            if (displayOvers.isNotBlank()) {
+                val isHundred = seriesName.contains("hundred", ignoreCase = true)
+                val suffix = if (isHundred) "balls" else "ov"
+                val cleanOvers = if (displayOvers.lowercase().contains(suffix.take(2))) displayOvers else "$displayOvers $suffix"
                 Surface(
                     shape = RoundedCornerShape(6.dp),
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),

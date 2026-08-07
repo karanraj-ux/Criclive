@@ -19,7 +19,9 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import com.example.worker.MatchUpdateWorker
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
 import androidx.glance.currentState
@@ -91,11 +93,29 @@ class MatchGlanceWidget : GlanceAppWidget() {
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Image(
-                        provider = ImageProvider(android.R.drawable.ic_popup_sync),
-                        contentDescription = "Refresh",
-                        modifier = GlanceModifier.size(16.dp).clickable(actionRunCallback<RefreshAction>())
-                    )
+                    Row(
+                        modifier = GlanceModifier
+                            .background(Color(0xFFE0E0E0)) // Light gray background
+                            .cornerRadius(12.dp)
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                            .clickable(actionRunCallback<RefreshAction>()),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            provider = ImageProvider(android.R.drawable.ic_popup_sync),
+                            contentDescription = "Refresh",
+                            modifier = GlanceModifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Tap to refresh",
+                            modifier = GlanceModifier.padding(start = 4.dp),
+                            style = TextStyle(
+                                color = androidx.glance.color.ColorProvider(day = Color.Black, night = Color.Black),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
                 }
                 
                 Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -122,7 +142,7 @@ class MatchGlanceWidget : GlanceAppWidget() {
 
 class RefreshAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val workRequest = androidx.work.OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
+        val workRequest = androidx.work.OneTimeWorkRequestBuilder<MatchUpdateWorker>().build()
         androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("WidgetUpdate", androidx.work.ExistingWorkPolicy.REPLACE, workRequest)
     }
 }
