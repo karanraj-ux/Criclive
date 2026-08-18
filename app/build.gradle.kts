@@ -1,7 +1,7 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 plugins {
   alias(libs.plugins.android.application)
-  id("org.jetbrains.kotlin.plugin.compose")
+  alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
 }
@@ -50,6 +50,8 @@ android {
     compose = true
     buildConfig = true
   }
+
+
   composeCompiler {
     
   }
@@ -102,5 +104,7 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
 }
+
+
 
 
