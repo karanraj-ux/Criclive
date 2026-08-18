@@ -1,7 +1,7 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.kotlin.compose)
+  id("org.jetbrains.kotlin.plugin.compose")
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
 }
@@ -50,11 +50,14 @@ android {
     compose = true
     buildConfig = true
   }
+  composeCompiler {
+    
+  }
+
   testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
 dependencies {
-    implementation("androidx.browser:browser:1.8.0")
   implementation(libs.koin.android)
   implementation(libs.koin.androidx.compose)
   implementation(libs.androidx.work.runtime.ktx)
@@ -99,3 +102,5 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
 }
+
+

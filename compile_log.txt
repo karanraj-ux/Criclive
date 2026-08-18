@@ -1,0 +1,95 @@
+Initialized native services in: /opt/gradle/.gradle/native
+Initialized jansi services in: /opt/gradle/.gradle/native
+The client will now receive all logging from the daemon (pid: 59). The daemon log file: /opt/gradle/.gradle/daemon/9.3.1/daemon-59.out.log
+Starting 10th build in daemon [uptime: 57 mins 29.288 secs, performance: 96%, GC rate: 0.00/s, heap usage: 0% of 4 GiB]
+Using 4 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=true, configureOnDemand=false, configurationCache=true, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=true, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Invalidating in-memory cache of /app/applet/.gradle/9.3.1/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /app/applet/.gradle/9.3.1/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /app/applet/.gradle/buildOutputCleanup/outputFiles.bin
+Encryption key source: default Gradle keystore (pkcs12)
+Invalidating in-memory cache of /opt/gradle/.gradle/caches/journal-1/file-access.bin
+Reusing configuration cache.
+Watching the file system is configured to be enabled if available
+Unable to list file systems to check whether they can be watched. Disabling watching. Reason: Could not query file systems: could not open mount file (errno 2: No such file or directory)
+File system watching is inactive
+Using local directory build cache for the root build (location = /opt/gradle/.gradle/caches/build-cache-1, remove unused entries = after 7 days).
+Tasks to be executed: [task ':app:preBuild', task ':app:preReleaseBuild', task ':app:generateReleaseBuildConfig', task ':app:generateReleaseResources', task ':app:packageReleaseResources', task ':app:processReleaseNavigationResources', task ':app:parseReleaseLocalResources', task ':app:generateReleaseRFile', task ':app:kspReleaseKotlin', task ':app:compileReleaseKotlin']
+Tasks that were excluded: []
+Resolve mutations for :app:preBuild (Thread[#420,Execution worker,5,main]) started.
+:app:preBuild (Thread[#420,Execution worker,5,main]) started.
+Invalidating in-memory cache of /app/applet/.gradle/9.3.1/executionHistory/executionHistory.bin
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preReleaseBuild (Thread[#420,Execution worker,5,main]) started.
+Build 201ed1ca-8b0f-44fe-a5df-5440a98dcc52 is started
+:app:preReleaseBuild (Thread[#420,Execution worker,5,main]) started.
+
+> Task :app:preReleaseBuild UP-TO-DATE
+Skipping task ':app:preReleaseBuild' as it has no actions.
+Resolve mutations for :app:generateReleaseBuildConfig (Thread[#420,Execution worker,5,main]) started.
+Resolve mutations for :app:generateReleaseResources (Thread[#419,included builds,5,main]) started.
+Resolve mutations for :app:processReleaseNavigationResources (Thread[#421,Execution worker Thread 2,5,main]) started.
+:app:generateReleaseBuildConfig (Thread[#420,Execution worker,5,main]) started.
+:app:generateReleaseResources (Thread[#419,included builds,5,main]) started.
+:app:processReleaseNavigationResources (Thread[#422,Execution worker Thread 3,5,main]) started.
+
+> Task :app:generateReleaseBuildConfig UP-TO-DATE
+Build cache key for task ':app:generateReleaseBuildConfig' is 0fac14fe3f9240718def8c8ade584f0d
+Skipping task ':app:generateReleaseBuildConfig' as it is up-to-date.
+Resolve mutations for :app:kspReleaseKotlin (Thread[#420,Execution worker,5,main]) started.
+:app:kspReleaseKotlin (Thread[#420,Execution worker,5,main]) started.
+
+> Task :app:generateReleaseResources UP-TO-DATE
+Build cache key for task ':app:generateReleaseResources' is b42517d49d831f8d70e399e2caf2b56a
+Skipping task ':app:generateReleaseResources' as it is up-to-date.
+Resolve mutations for :app:packageReleaseResources (Thread[#419,included builds,5,main]) started.
+:app:packageReleaseResources (Thread[#419,included builds,5,main]) started.
+
+> Task :app:packageReleaseResources UP-TO-DATE
+Build cache key for task ':app:packageReleaseResources' is 80fd174e31c7edfa6b2f9652e9066399
+Skipping task ':app:packageReleaseResources' as it is up-to-date.
+
+> Task :app:kspReleaseKotlin UP-TO-DATE
+Build cache key for task ':app:kspReleaseKotlin' is e3aa01bf841b8dab4b93ad9db3defd1f
+Skipping task ':app:kspReleaseKotlin' as it is up-to-date.
+
+> Task :app:processReleaseNavigationResources UP-TO-DATE
+Build cache key for task ':app:processReleaseNavigationResources' is b4648a2c7bc38fe290182e41b944b9db
+Skipping task ':app:processReleaseNavigationResources' as it is up-to-date.
+Resolve mutations for :app:parseReleaseLocalResources (Thread[#422,Execution worker Thread 3,5,main]) started.
+:app:parseReleaseLocalResources (Thread[#422,Execution worker Thread 3,5,main]) started.
+
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+Build cache key for task ':app:parseReleaseLocalResources' is 59b0114ce7de8584e78117bd8b3c3e66
+Skipping task ':app:parseReleaseLocalResources' as it is up-to-date.
+Resolve mutations for :app:generateReleaseRFile (Thread[#422,Execution worker Thread 3,5,main]) started.
+:app:generateReleaseRFile (Thread[#422,Execution worker Thread 3,5,main]) started.
+
+> Task :app:generateReleaseRFile UP-TO-DATE
+Build cache key for task ':app:generateReleaseRFile' is c9f104b46856c4eb9c106d70c535b058
+Skipping task ':app:generateReleaseRFile' as it is up-to-date.
+Resolve mutations for :app:compileReleaseKotlin (Thread[#422,Execution worker Thread 3,5,main]) started.
+:app:compileReleaseKotlin (Thread[#422,Execution worker Thread 3,5,main]) started.
+
+> Task :app:compileReleaseKotlin UP-TO-DATE
+file or directory '/app/applet/app/src/main/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+file or directory '/app/applet/app/src/release/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+file or directory '/app/applet/app/src/main/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+file or directory '/app/applet/app/src/release/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+file or directory '/app/applet/app/src/main/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+file or directory '/app/applet/app/src/release/kotlin', not found
+file or directory '/app/applet/app/src/release/java', not found
+Build cache key for task ':app:compileReleaseKotlin' is 070f686809472a017b5e84aabc88893b
+Skipping task ':app:compileReleaseKotlin' as it is up-to-date.
+Build 201ed1ca-8b0f-44fe-a5df-5440a98dcc52 is closed
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 8 up-to-date
+Configuration cache entry reused.
