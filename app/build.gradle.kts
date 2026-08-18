@@ -50,13 +50,7 @@ android {
     compose = true
     buildConfig = true
   }
-  composeOptions {
-      kotlinCompilerExtensionVersion = "1.5.15"
-  }
-
-
-
-testOptions { unitTests { isIncludeAndroidResources = true } }
+  testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
 dependencies {
@@ -103,14 +97,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.test.manifest)
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
-}
-
-
-
-
-
-
-
-configurations.all {
-    exclude(group = "androidx.compose.compiler", module = "compiler")
 }
