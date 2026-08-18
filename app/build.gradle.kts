@@ -54,6 +54,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.browser:browser:1.8.0")
   implementation(libs.koin.android)
   implementation(libs.koin.androidx.compose)
   implementation(libs.androidx.work.runtime.ktx)

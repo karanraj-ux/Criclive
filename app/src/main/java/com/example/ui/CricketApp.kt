@@ -1,11 +1,11 @@
 package com.example.ui
+import android.net.Uri
 
 import android.os.Build
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.work.OneTimeWorkRequestBuilder
@@ -29,6 +29,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Alignment
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -186,11 +187,22 @@ fun CricketApp(
                 }
                 is CricketUiState.Success -> {
                     if (state.selectedNewsUrl != null) {
-                        com.example.ui.screens.WebViewScreen(
-                            url = state.selectedNewsUrl,
-                            title = if (state.selectedNewsUrl.contains("cricbuzz.com/live-cricket-scores", ignoreCase = true)) "Live Scorecard" else "News Details",
-                            onBack = { viewModel.updateSelectedNewsUrl(null) }
-                        )
+                        // Launch Chrome Custom Tabs instantly and clear the selection
+                        val context = LocalContext.current
+                        androidx.compose.runtime.LaunchedEffect(state.selectedNewsUrl) {
+                            try {
+                                val customTabsIntent = CustomTabsIntent.Builder().build()
+                                customTabsIntent.launchUrl(context, Uri.parse(state.selectedNewsUrl))
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            viewModel.updateSelectedNewsUrl(null)
+                        }
+                        
+                        // Show a temporary loading or empty state while Chrome opens over it
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     } else if (state.selectedMatchId != null) {
                         val match = state.matches.find { it.id == state.selectedMatchId }
                         if (match != null) {

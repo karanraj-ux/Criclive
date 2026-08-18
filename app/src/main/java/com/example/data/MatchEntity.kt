@@ -17,6 +17,7 @@ data class MatchEntity(
     val seriesName: String = "",
     val matchTiming: String = "",
     val matchUrl: String,
+    val notablePerformances: String = "",
     val rawState: String = "",
     val timestamp: Long = System.currentTimeMillis()
 ) {
@@ -33,6 +34,7 @@ data class MatchEntity(
             seriesName = seriesName,
             matchTiming = matchTiming,
             matchUrl = matchUrl,
+            notablePerformances = notablePerformances,
             rawState = rawState
         )
     }
@@ -51,6 +53,7 @@ fun Match.toEntity(): MatchEntity {
         seriesName = seriesName,
         matchTiming = matchTiming,
         matchUrl = matchUrl,
+            notablePerformances = notablePerformances,
         rawState = rawState
     )
 }

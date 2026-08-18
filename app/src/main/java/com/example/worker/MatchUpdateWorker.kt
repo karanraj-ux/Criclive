@@ -29,16 +29,18 @@ class MatchUpdateWorker(
             val glanceIds = manager.getGlanceIds(MatchGlanceWidget::class.java)
             
 
+            
             val onboardingManager = com.example.data.OnboardingManager(applicationContext)
             val preferredTeams = onboardingManager.preferredTeams.first()
+            val preferredPlayers = onboardingManager.preferredPlayers.first()
             val pinnedMatchId = onboardingManager.widgetPinnedMatchId.first()
+            
+            val repository = com.example.data.CricketRepository(applicationContext)
+            repository.syncMatches(preferredPlayers, preferredTeams)
+            
+            val dao = com.example.data.AppDatabase.getDatabase(applicationContext).matchDao()
+            val parsedMatches = dao.getAllMatches().map { it.toMatch() }
 
-            val rawItems = RssParser.fetchLiveMatches()
-            if (rawItems.isEmpty()) {
-                return Result.success()
-            }
-            val parsedMatchesRaw = rawItems.map { com.example.data.CricketRepository.mapItemToMatch(it) }
-            val parsedMatches = com.example.data.CricketRepository.deduplicateMatches(parsedMatchesRaw)
             
             
             val notifiedMatches = onboardingManager.notifiedMatches.first()

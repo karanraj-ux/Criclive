@@ -2,6 +2,7 @@ package com.example.data
 
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import com.example.api.RssParser
 import com.example.api.RetrofitClient
 import com.example.model.Match
@@ -28,104 +29,61 @@ class CricketRepository(private val context: android.content.Context) {
     private val squadCache = mutableMapOf<String, List<String>>()
 
 
-    fun getLiveMatchesFlow(
-        preferredPlayersFlow: Flow<Set<String>>,
-        preferredTeamsFlow: Flow<Set<String>>
-    ): Flow<FetchResult> {
-        val networkTick = flow {
-            while (true) {
-                emit(Unit)
-                delay(30000)
+    
+    fun getLiveMatchesFlow(): Flow<List<Match>> {
+        return dao.getAllMatchesFlow().map { entities ->
+            val allMatches = entities.map { it.toMatch() }
+            val liveMatches = allMatches.filter { it.status.contains("Live", true) || it.status.contains("*", true) }
+            val otherMatches = allMatches.filterNot { it.status.contains("Live", true) || it.status.contains("*", true) }
+            
+            // Limit older matches to keep UI snappy
+            (liveMatches + otherMatches.take(30))
+        }.flowOn(Dispatchers.IO)
+    }
+
+    suspend fun syncMatches(preferredPlayers: Set<String>, preferredTeams: Set<String>) = withContext(Dispatchers.IO) {
+        val rawItems = RssParser.fetchLiveMatches()
+        if (rawItems.isEmpty()) return@withContext
+        
+        val parsedMatches = rawItems.filter { item ->
+            val title = item.title
+            val isExcluded = CricketConstants.EXCLUDED_KEYWORDS.any { title.contains(it, ignoreCase = true) }
+            val isMajor = CricketConstants.MAJOR_KEYWORDS.any { keyword -> title.contains(keyword, ignoreCase = true) }
+            val isPreferredTeam = preferredTeams.any { team -> title.contains(team, ignoreCase = true) }
+            !isExcluded && (isMajor || isPreferredTeam)
+        }.map { mapItemToMatch(it) }.map { match ->
+            val highlightStats = mutableListOf<String>()
+            if (match.notablePerformances.isNotEmpty()) {
+                val statsArray = match.notablePerformances.split(" | ")
+                for (stat in statsArray) {
+                    for (fav in preferredPlayers) {
+                        if (stat.contains(fav, ignoreCase = true)) {
+                            highlightStats.add("★ $stat")
+                            break
+                        }
+                    }
+                }
             }
+            val finalPerformances = if (highlightStats.isNotEmpty()) {
+                highlightStats.joinToString(" • ")
+            } else if (match.notablePerformances.isNotEmpty()) {
+                match.notablePerformances
+            } else {
+                ""
+            }
+            match.copy(notablePerformances = finalPerformances)
         }
         
-        return kotlinx.coroutines.flow.combine(
-            networkTick,
-            preferredPlayersFlow,
-            preferredTeamsFlow
-        ) { _, preferredPlayers, preferredTeams ->
-            var cachedMatches: List<Match> = emptyList()
-            try {
-                val rawItems = RssParser.fetchLiveMatches()
-                val parsedMatches = rawItems.filter { item ->
-                    val title = item.title
-                    val isExcluded = CricketConstants.EXCLUDED_KEYWORDS.any { 
-                        title.contains(it, ignoreCase = true) 
-                    }
-                    val isMajor = CricketConstants.MAJOR_KEYWORDS.any { keyword -> title.contains(keyword, ignoreCase = true) }
-                    val isPreferredTeam = preferredTeams.any { team -> title.contains(team, ignoreCase = true) }
-                    
-                    !isExcluded && (isMajor || isPreferredTeam)
-                }.map { item -> 
-                    mapItemToMatch(item) 
-                }.map { match ->
-                    val highlightStats = mutableListOf<String>()
-                    if (match.notablePerformances.isNotEmpty()) {
-                        val statsArray = match.notablePerformances.split(" | ")
-                        for (stat in statsArray) {
-                            for (fav in preferredPlayers) {
-                                if (stat.contains(fav, ignoreCase = true)) {
-                                    highlightStats.add("★ $stat")
-                                    break
-                                }
-                            }
-                        }
-                    }
-                    val finalPerformances = if (highlightStats.isNotEmpty()) {
-                        highlightStats.joinToString(" • ")
-                    } else if (match.notablePerformances.isNotEmpty()) {
-                        match.notablePerformances
-                    } else {
-                        ""
-                    }
-                    match.copy(notablePerformances = finalPerformances)
-                }
-                
-                val rssMatches = deduplicateMatches(parsedMatches)
-                
-                if (rssMatches.isNotEmpty()) {
-                    val entities = rssMatches.map { it.toEntity() }
-                    dao.insertMatches(entities)
-                }
-                
-                val allDbMatches = dao.getAllMatches().map { it.toMatch() }
-                val rssMatchIds = rssMatches.map { it.id }.toSet()
-                
-                val matchesToShow = rssMatches.toMutableList()
-                
-                for (team in preferredTeams) {
-                    val teamInRss = rssMatches.any { it.team1.contains(team, true) || it.team2.contains(team, true) }
-                    if (!teamInRss) {
-                        val pastMatch = allDbMatches.firstOrNull { it.team1.contains(team, true) || it.team2.contains(team, true) }
-                        if (pastMatch != null && !rssMatchIds.contains(pastMatch.id)) {
-                            val statusPrefix = if (pastMatch.status.startsWith("Recent:")) "" else "Recent: "
-                            val displayStatus = statusPrefix + pastMatch.status
-                            matchesToShow.add(pastMatch.copy(status = displayStatus))
-                        }
-                    }
-                }
-                
-                cachedMatches = matchesToShow.sortedByDescending { 
-                    it.status.contains("Live", true) || it.status.contains("*", true) 
-                }
-                
-                FetchResult.Success(cachedMatches, isOffline = false)
-            } catch (e: Exception) {
-                Log.e("CricketRepository", "Error fetching matches", e)
-                try {
-                    val allDbMatches = dao.getAllMatches().map { it.toMatch() }
-                    if (allDbMatches.isNotEmpty()) {
-                        cachedMatches = allDbMatches.sortedByDescending { it.status.contains("Live", true) }
-                        FetchResult.Success(cachedMatches, isOffline = true)
-                    } else {
-                        FetchResult.Error(e.message ?: "Failed to fetch data")
-                    }
-                } catch (dbError: Exception) {
-                    FetchResult.Error(e.message ?: "Failed to fetch data")
-                }
-            }
-        }.onStart { emit(FetchResult.Loading) }.flowOn(Dispatchers.IO)
+        val rssMatches = deduplicateMatches(parsedMatches)
+        if (rssMatches.isNotEmpty()) {
+            dao.insertMatches(rssMatches.map { it.toEntity() })
+        }
+        
+        // Data Pruning - Keep DB clean and fast
+        val threeDaysAgo = System.currentTimeMillis() - (3L * 24L * 60L * 60L * 1000L)
+        dao.deleteOldMatches(threeDaysAgo)
     }
+
 
     companion object {
         private fun getStatusPriority(match: Match): Int {

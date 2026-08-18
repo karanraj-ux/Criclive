@@ -10,6 +10,7 @@ import com.example.model.Match
 import com.example.util.toAbbreviation
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 sealed interface CricketUiState {
     object Loading : CricketUiState
@@ -136,14 +137,29 @@ val uiState: StateFlow<CricketUiState> = combine(
     .flowOn(kotlinx.coroutines.Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CricketUiState.Loading)
 
+    
+    private val _isOffline = MutableStateFlow(false)
+
     init {
-        startLiveApiFetching()
+        // Observe DB continuously
+        viewModelScope.launch {
+            repository.getLiveMatchesFlow()
+                .collect { matches ->
+                    if (matches.isNotEmpty() || _fetchResult.value is FetchResult.Loading) {
+                        _fetchResult.value = FetchResult.Success(matches, _isOffline.value)
+                    }
+                }
+        }
+        
         viewModelScope.launch {
             onboardingManager.idolName.collectLatest { name ->
                 fetchPlayerNews(name)
             }
         }
+        
+        startLiveApiFetching()
     }
+
 
     fun selectMatch(id: String?) {
         _selectedMatchId.value = id
@@ -153,26 +169,56 @@ val uiState: StateFlow<CricketUiState> = combine(
         _searchQuery.value = query
     }
 
+    
     fun refresh() {
-        _fetchResult.value = FetchResult.Loading
-        startLiveApiFetching()
+        startLiveApiFetching(forceRefresh = true)
     }
 
     private var fetchJob: kotlinx.coroutines.Job? = null
     
-    private fun startLiveApiFetching() {
+    private fun startLiveApiFetching(forceRefresh: Boolean = false) {
+        if (forceRefresh) {
+            val current = _fetchResult.value
+            if (current is FetchResult.Success) {
+                // Keep showing data, but maybe show a subtle loading state if needed.
+                // We just trigger a sync.
+            } else {
+                _fetchResult.value = FetchResult.Loading
+            }
+        }
+        
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
-            repository.getLiveMatchesFlow(onboardingManager.preferredPlayers, onboardingManager.preferredTeams)
-                .collect { result ->
-                    _fetchResult.value = result
-                    if (result is FetchResult.Success) {
-                        val format = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
-                        _lastUpdated.value = format.format(java.util.Date())
+            while (true) {
+                try {
+                    val prefPlayers = onboardingManager.preferredPlayers.first()
+                    val prefTeams = onboardingManager.preferredTeams.first()
+                    repository.syncMatches(prefPlayers, prefTeams)
+                    
+                    _isOffline.value = false
+                    val format = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+                    _lastUpdated.value = format.format(java.util.Date())
+                    
+                    val currentResult = _fetchResult.value
+                    if (currentResult is FetchResult.Success) {
+                        _fetchResult.value = currentResult.copy(
+                            isOffline = false,
+                        )
+                    }
+                } catch (e: Exception) {
+                    _isOffline.value = true
+                    val currentResult = _fetchResult.value
+                    if (currentResult is FetchResult.Success) {
+                        _fetchResult.value = currentResult.copy(isOffline = true)
+                    } else if (currentResult is FetchResult.Loading) {
+                        _fetchResult.value = FetchResult.Error(e.message ?: "Network Error")
                     }
                 }
+                delay(30000)
+            }
         }
     }
+
 
     fun completeOnboarding(selectedTeams: Set<String>, selectedPlayers: Set<String> = emptySet()) {
         viewModelScope.launch {
