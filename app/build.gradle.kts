@@ -50,13 +50,13 @@ android {
     compose = true
     buildConfig = true
   }
-
-
-  composeCompiler {
-    
+  composeOptions {
+      kotlinCompilerExtensionVersion = "1.5.15"
   }
 
-  testOptions { unitTests { isIncludeAndroidResources = true } }
+
+
+testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
 dependencies {
@@ -108,3 +108,9 @@ dependencies {
 
 
 
+
+
+
+configurations.all {
+    exclude(group = "androidx.compose.compiler", module = "compiler")
+}

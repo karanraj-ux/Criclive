@@ -1,0 +1,12 @@
+allprojects {
+    afterEvaluate {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+            if (task.name == "compileReleaseKotlin") {
+                task.doFirst {
+                    println("Compiler plugin classpath:")
+                    task.pluginClasspath.each { println(it) }
+                }
+            }
+        }
+    }
+}
