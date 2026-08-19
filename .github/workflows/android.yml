@@ -20,7 +20,12 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: 8.14
+        validate-wrappers: false
+
 
     - name: Generate temporary debug keystore
       run: |
@@ -28,20 +33,15 @@ jobs:
         mkdir -p ~/.android
         cp debug.keystore ~/.android/debug.keystore
 
-    - name: Fix Gradle Wrapper
-      run: gradle wrapper --gradle-version 9.3.1
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
     - name: Build Release APK
-      run: ./gradlew assembleRelease --no-daemon
+      run: gradle assembleRelease --no-daemon
 
     - name: Rename APK
-      run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/NetBot.apk
+      run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/CricLive.apk
 
+    # This modern wildcard expression safely locates and names your download folder without crashing
     - name: Upload Built APKs
       uses: actions/upload-artifact@v4
       with:
-        name: NetBot-Distribution-Build
+        name: CricLive-Distribution-Build
         path: app/build/outputs/apk/release/*.apk

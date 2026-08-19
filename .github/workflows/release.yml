@@ -23,6 +23,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.14
+          validate-wrappers: false
 
       - name: Build Release APK
         run: gradle assembleRelease --no-daemon
